@@ -81,6 +81,43 @@ main div.input_data div.data {
   justify-content: flex-start;
   gap: 6px;
 }
+main div.input_data::-webkit-scrollbar {
+  background: var(--clr_bakcground);
+  width: 12px;
+}
+main div.input_data::-webkit-scrollbar-thumb {
+  background: var(--clr_main);
+  border-radius: 8px;
+}
+main div.input_data div.data div.row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 75% 1fr;
+  grid-template-rows: 1fr;
+  align-items: flex-end;
+  justify-items: flex-start;
+  gap: 10px;
+}
+main div.input_data div.data div.row input.word {
+  width: 100%;
+  border: 2px solid;
+  border-color: transparent transparent var(--clr_main) transparent;
+  font-size: 1em;
+  padding: 3px 5px;
+  border-radius: 4px;
+  transition: 0.2s ease-out;
+}
+main div.input_data div.data div.row input.word:focus {
+  outline: none;
+  border-color: var(--clr_main);
+}
+main div.input_data div.data div.row span.result {
+  text-transform: capitalize;
+}
+main div.input_data div.data div.row span.result.false {
+  font-weight: 600;
+  color: var(--clr_contrast)
+}
 main div.input_data div.actions {
   width: 100%;
   height: fit-content;
