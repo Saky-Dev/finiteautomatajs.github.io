@@ -1,6 +1,7 @@
 /* function to add a input data row to box_data
  * the DOM element in EMMET format is euals to 
- * div.row>(input.word+span.result) */
+ * div.row>(input.word+span.result)
+ */
 document.querySelector('button#data_add').addEventListener('click', () => {
   const row = document.createElement('div')
   const word = document.createElement('input')
@@ -22,7 +23,6 @@ document.querySelector('button#data_add').addEventListener('click', () => {
 document.querySelector('button#data_clear').addEventListener('click', () => 
   [...box_data.children].forEach(child => box_data.removeChild(child))
 )
-
 
 /* DOM elements */
 const box_data = document.querySelector('main div.input_data div.data')

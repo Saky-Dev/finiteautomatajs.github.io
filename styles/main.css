@@ -40,7 +40,7 @@ main aside ul.toolbar li button.selected {
   background: var(--clr_main_dark);
 }
 /* -- drag -- */
-main div.drag {
+main div#drag {
   width: 100%;
   height: 100%;
   background: var(--clr_bakcground);
