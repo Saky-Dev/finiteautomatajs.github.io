@@ -3,8 +3,20 @@
 const stateTools = {
   'handleLink': e => { },
   'handleRemove': e => { },
-  'handleDragstart': e => { },
-  'handleDragend': e => { }
+  'handleDragstart': e => e.target.style.opacity = "0.4",
+  'handleDragend': e => {
+    const on_position = {
+      'x': draggable.min_x < e.x && e.x + 30 < draggable.max_x,
+      'y': draggable.min_y < e.y && e.y + 30 < draggable.max_y  
+    }
+
+    e.target.style.opacity = "1"
+
+    if (on_position.x && on_position.y) {
+      e.target.style.left = `${e.x - 30}px`
+      e.target.style.top = `${e.y - 30}px`
+    }
+  }
 }
 
 /* This function can add an state to drag area, first create an button DOM element
@@ -27,7 +39,7 @@ const handleAdd = e => {
 
   node.innerText = name || `Q${state_num++}`
   node.addEventListener('dragstart', stateTools['handleDragstart'])
-  node.addEventListener('dragend', stateTools['handleDragstart'])
+  node.addEventListener('dragend', stateTools['handleDragend'])
   node.addEventListener('click', evt => stateTools[`handle${action}`](evt) ?? false)
 
   if (on_position.x && on_position.y) {

@@ -48,6 +48,15 @@ main div#drag {
   outline: 4px solid var(--clr_main);
   outline-offset: -4px;
 }
+main div#drag button.state {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; 
+  background: var(--clr_main);
+  border: none;
+  color: var(--clr_bakcground);
+}
 /* -- input data -- */
 main div.input_data {
   width: 100%;
