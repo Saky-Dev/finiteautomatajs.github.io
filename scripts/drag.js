@@ -2,20 +2,30 @@
  * that user can do with an state */
 const stateTools = {
   'handleLink': e => { },
-  'handleRemove': e => { },
-  'handleDragstart': e => e.target.style.opacity = "0.4",
+  'handleRemove': e => {
+    delete states[e.target.innerText]
+    box_drag.removeChild(e.target)
+  },
+  'handleDragstart': e => e.target.style.opacity = '0.4',
   'handleDragend': e => {
     const on_position = {
       'x': draggable.min_x < e.x && e.x + 30 < draggable.max_x,
       'y': draggable.min_y < e.y && e.y + 30 < draggable.max_y  
     }
 
-    e.target.style.opacity = "1"
+    e.target.style.opacity = '1'
 
     if (on_position.x && on_position.y) {
       e.target.style.left = `${e.x - 30}px`
       e.target.style.top = `${e.y - 30}px`
     }
+  },
+  'handleContextmenu': e => {
+    e.preventDefault()
+    let box_contextmenu = document.querySelector('div#drag div.contextmenu')
+    box_contextmenu.style.top = `${e.y}px`
+    box_contextmenu.style.left = `${e.x}px`
+    box_contextmenu.className = 'contextmenu visible'
   }
 }
 
@@ -40,6 +50,7 @@ const handleAdd = e => {
   node.innerText = name || `Q${state_num++}`
   node.addEventListener('dragstart', stateTools['handleDragstart'])
   node.addEventListener('dragend', stateTools['handleDragend'])
+  node.addEventListener('contextmenu', stateTools['handleContextmenu'])
   node.addEventListener('click', evt => stateTools[`handle${action}`](evt) ?? false)
 
   if (on_position.x && on_position.y) {

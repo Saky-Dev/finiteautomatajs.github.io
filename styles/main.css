@@ -57,6 +57,43 @@ main div#drag button.state {
   border: none;
   color: var(--clr_bakcground);
 }
+main div#drag div.contextmenu {
+  position: absolute;
+  width: fit-content;
+  height: fit-content;
+  border-radius: 4px; 
+  background: var(--clr_grey);
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2px;
+  transition: 0.05s ease-out;
+  z-index: 5;
+}
+main div#drag div.contextmenu.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+main div#drag div.contextmenu.visible {
+  opacity: 1;
+  visibility: visible;
+}
+main div#drag div.contextmenu button {
+  padding: 6px 14px;
+  font-size: 0.95em;
+  background: var(--clr_grey);
+  color: var(--clr_bakcground);
+  border-radius: inherit;
+  width: 100%;
+  height: fit-content;
+  border: none;
+  transition: 0.15 ease-out;
+}
+main div#drag div.contextmenu button:hover {
+  background: var(--clr_grey_dark);
+}
 /* -- input data -- */
 main div.input_data {
   width: 100%;
