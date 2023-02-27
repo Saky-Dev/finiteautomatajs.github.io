@@ -57,7 +57,7 @@ main div#drag button.state {
   border: none;
   color: var(--clr_bakcground);
 }
-main div#drag div.contextmenu {
+main div#drag div#contextmenu {
   position: absolute;
   width: fit-content;
   height: fit-content;
@@ -70,15 +70,15 @@ main div#drag div.contextmenu {
   gap: 2px;
   z-index: 5;
 }
-main div#drag div.contextmenu.hidden {
+main div#drag div#contextmenu.hidden {
   opacity: 0;
   visibility: hidden;
 }
-main div#drag div.contextmenu.visible {
+main div#drag div#contextmenu.visible {
   opacity: 1;
   visibility: visible;
 }
-main div#drag div.contextmenu button {
+main div#drag div#contextmenu button {
   padding: 8px 25px 8px 10px;
   font-size: 0.85em;
   background: var(--clr_grey);
@@ -89,7 +89,7 @@ main div#drag div.contextmenu button {
   transition: 0.15 ease-out;
   text-align: left;
 }
-main div#drag div.contextmenu button:hover {
+main div#drag div#contextmenu button:hover {
   background: var(--clr_black);
 }
 /* -- input data -- */

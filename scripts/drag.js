@@ -2,11 +2,17 @@
  * that user can do with an state */
 const stateTools = {
   'handleLink': e => { },
+  /* Function to remove an state first of the states' object
+   * and then fron thw UI */
   'handleRemove': e => {
     delete states[e.target.innerText]
     box_drag.removeChild(e.target)
   },
+  /* Visual to do a visual change when state is moving */
   'handleDragstart': e => e.target.style.opacity = '0.4',
+  /* On this first check if the move is inside the drag area
+   * and if its true the visual effect is removed and the
+   * state is moved to the position */
   'handleDragend': e => {
     const on_position = {
       'x': draggable.min_x < e.x - 30 && e.x + 30 < draggable.max_x,
@@ -20,12 +26,14 @@ const stateTools = {
       e.target.style.top = `${e.y - 30}px`
     }
   },
+  /* Function to  hide the default context menu and make
+   * visible on the state */
   'handleContextmenu': e => {
     e.preventDefault()
     
     box_contextmenu.style.top = `${e.y}px`
     box_contextmenu.style.left = `${e.x}px`
-    box_contextmenu.className = 'contextmenu visible'
+    box_contextmenu.className = 'visible'
   }
 }
 
@@ -72,7 +80,7 @@ const handleAdd = e => {
 }
 
 /* DOM elements */
-const box_contextmenu = document.querySelector('div#drag div.contextmenu')
+const box_contextmenu = document.querySelector('div#contextmenu')
 const box_drag = document.querySelector('div#drag')
 
 /* Get size and position of drag area*/
@@ -102,11 +110,13 @@ let state_num = 0
 
 box_drag.addEventListener('click', e => action === 'Add' ? handleAdd(e) : false)
 
+/* Functions to check if an state's context menu is visible and
+ * hide the default context menu or hide the personalized */
 window.addEventListener('click', () => {
-  if (box_contextmenu.classList.contains('visible'))
-    box_contextmenu.className = 'contextmenu hidden'
+  if (box_contextmenu.className === 'visible')
+    box_contextmenu.className = 'hidden'
 })
 window.addEventListener('contextmenu', e => {
-  if (box_contextmenu.classList.contains('visible'))
+  if (box_contextmenu.className === 'visible')
     e.preventDefault()
 })
