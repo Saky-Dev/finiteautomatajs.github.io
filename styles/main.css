@@ -61,7 +61,6 @@ main div#drag div.contextmenu {
   position: absolute;
   width: fit-content;
   height: fit-content;
-  border-radius: 4px; 
   background: var(--clr_grey);
   border: none;
   display: flex;
@@ -69,7 +68,6 @@ main div#drag div.contextmenu {
   align-items: flex-start;
   justify-content: flex-start;
   gap: 2px;
-  transition: 0.05s ease-out;
   z-index: 5;
 }
 main div#drag div.contextmenu.hidden {
@@ -81,18 +79,18 @@ main div#drag div.contextmenu.visible {
   visibility: visible;
 }
 main div#drag div.contextmenu button {
-  padding: 6px 14px;
-  font-size: 0.95em;
+  padding: 8px 25px 8px 10px;
+  font-size: 0.85em;
   background: var(--clr_grey);
   color: var(--clr_bakcground);
-  border-radius: inherit;
   width: 100%;
   height: fit-content;
   border: none;
   transition: 0.15 ease-out;
+  text-align: left;
 }
 main div#drag div.contextmenu button:hover {
-  background: var(--clr_grey_dark);
+  background: var(--clr_black);
 }
 /* -- input data -- */
 main div.input_data {
