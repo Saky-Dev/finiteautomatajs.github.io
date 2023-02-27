@@ -1,6 +1,8 @@
 /* This is an object that saves functions linked to actions
  * that user can do with an state */
 const stateTools = {
+  /* Prevent an console error alert */
+  'handleCursor': e => e.preventDefault(),
   'handleLink': e => { },
   /* Function to remove an state first of the states' object
    * and then fron thw UI */
@@ -26,10 +28,22 @@ const stateTools = {
       e.target.style.top = `${e.y - 30}px`
     }
   },
-  /* Function to  hide the default context menu and make
+  /* Function to hide the default context menu then set
+   * the state selected is changed, change the text 
+   * inside the options of context menu and make
    * visible on the state */
   'handleContextmenu': e => {
     e.preventDefault()
+
+    ctx_selected_state = e.target
+
+    btn_set_initial.innerText = states[e.target.innerText].isInitial
+    ? 'Quitar inicial'
+    : 'Agregar inicial'
+
+    btn_set_final.innerText = states[e.target.innerText].isFinal
+    ? 'Quitar final'
+    : 'Agregar final'
     
     box_contextmenu.style.top = `${e.y}px`
     box_contextmenu.style.left = `${e.x}px`
@@ -54,6 +68,7 @@ const handleAdd = e => {
 
   node.className = 'state'
   node.draggable = true
+  node.tabIndex = '-1'
 
   node.innerText = name || `Q${state_num++}`
   node.addEventListener('dragstart', stateTools['handleDragstart'])
@@ -79,9 +94,41 @@ const handleAdd = e => {
   }
 }
 
+/* This function change the status of an state, it receive the
+ * status to change and if there is a selected state the change is
+ * realized, removing or adding the class to state and in the object */
+const handleSetStatus = status => {
+  if (!ctx_selected_state)
+    return false
+
+  const id = ctx_selected_state.innerText
+
+  if (status === 'initial') {
+    states[id].isInitial
+    ? ctx_selected_state.classList.remove('initial')
+    : ctx_selected_state.classList.add('initial')
+    
+    states[id].isInitial = !states[id].isInitial
+  }
+  
+  if (status === 'final') {
+    states[id].isFinal
+    ? ctx_selected_state.classList.remove('final')
+    : ctx_selected_state.classList.add('final')
+    
+    states[id].isFinal = !states[id].isFinal
+  }
+
+}
+
 /* DOM elements */
 const box_contextmenu = document.querySelector('div#contextmenu')
 const box_drag = document.querySelector('div#drag')
+const btn_set_initial = document.querySelector('button#set_initial')
+const btn_set_final = document.querySelector('button#set_final')
+
+/* Glogal variables */
+let ctx_selected_state = undefined
 
 /* Get size and position of drag area*/
 const draggable = {
@@ -109,6 +156,9 @@ let state_num = 0
 
 
 box_drag.addEventListener('click', e => action === 'Add' ? handleAdd(e) : false)
+
+btn_set_initial.addEventListener('click', () => handleSetStatus('initial'))
+btn_set_final.addEventListener('click', () => handleSetStatus('final'))
 
 /* Functions to check if an state's context menu is visible and
  * hide the default context menu or hide the personalized */
