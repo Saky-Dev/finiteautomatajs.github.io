@@ -3,7 +3,79 @@
 const stateTools = {
   /* Prevent an console error alert */
   'handleCursor': e => e.preventDefault(),
-  'handleLink': e => { },
+  'handleLink': e => {
+    if (!link.starting) {
+      link.starting = e.target
+      return false
+    }
+
+    link.ending = e.target
+
+    const position = {
+      stx: link.starting.offsetLeft + 30,
+      sty: link.starting.offsetTop + 30,
+      edx: link.ending.offsetLeft + 30,
+      edy: link.ending.offsetTop + 30
+    }
+    const vector = {
+      'top': position.sty < position.edy ? position.sty : position.edy,
+      'left': position.stx < position.edx ? position.stx : position.edx,
+      'height': position.sty > position.edy ? position.sty - position.edy : position.edy - position.sty,
+      'width': position.stx > position.edx ? position.stx - position.edx : position.edx - position.stx
+    }
+    
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');  
+    const name = prompt('Nombre de la transición:')
+
+    let aux_searching = 0
+    let repeated = false
+    let direction = {
+      vertical: position.sty < position.edy ? 'down' : 'up',
+      horizontal: position.stx < position.edx ? 'right' : 'left'
+    }
+    let m = `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`
+    let c = {
+      c1: `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`,
+      c2: `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`,
+      c3: `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`
+    }
+
+    if (name)
+      Object.keys(states).forEach(id => {
+        aux_searching = Object.keys(states[id].transitions).findIndex(key => key === name)
+
+        if (aux_searching > -1) {
+          repeated = true
+          return false
+        }
+      })
+
+    if (repeated) {
+      alert('El nombre de la transición ya esta puesto')
+      link = { starting: undefined, ending: undefined }
+      return false
+    }
+    
+    svg.classList.add('link')
+
+    svg.style.top = `${vector.top}px`
+    svg.style.left = `${vector.left}px`
+    svg.style.height = `${vector.height}px`
+    svg.style.width = `${vector.width}px`
+
+    svg.setAttribute('viewbox', `0 0 ${vector.width} ${vector.height}`)
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+
+    path.setAttributeNS(null, 'd', `M ${m} C ${c.c1}, ${c.c2}, ${c.c3}`)
+
+    svg.appendChild(path)
+    box_drag.appendChild(svg)
+
+    states[link.starting.innerText].transitions[name || `a${transition_num++}`] = link.ending.innerText
+
+    link = { starting: undefined, ending: undefined }
+  },
   /* Function to remove an state first of the states' object
    * and then fron thw UI */
   'handleRemove': e => {
@@ -58,12 +130,12 @@ const stateTools = {
  * finally if all its alright the node is added to drag area and into states */
 const handleAdd = e => {
   const node = document.createElement('button')
+  const name = prompt('Nombre del estado:')
   const on_position = {
     'x': draggable.min_x < e.x - 30 && e.x + 30 < draggable.max_x,
     'y': draggable.min_y < e.y - 30 && e.y + 30 < draggable.max_y
   }
 
-  let name = prompt('Nombre del estado:')
   let positioned = false
 
   node.className = 'state'
@@ -119,6 +191,7 @@ const handleSetStatus = status => {
     states[id].isFinal = !states[id].isFinal
   }
 
+  ctx_selected_state = undefined
 }
 
 /* DOM elements */
@@ -127,8 +200,6 @@ const box_drag = document.querySelector('div#drag')
 const btn_set_initial = document.querySelector('button#set_initial')
 const btn_set_final = document.querySelector('button#set_final')
 
-/* Glogal variables */
-let ctx_selected_state = undefined
 
 /* Get size and position of drag area*/
 const draggable = {
@@ -138,8 +209,12 @@ const draggable = {
   max_x: box_drag.offsetLeft + box_drag.offsetWidth
 }
 
-let action = 'Cursor'
+/* Glogal variables */
+let ctx_selected_state = undefined
 let state_num = 0
+let transition_num = 0
+let action = 'Cursor'
+let link = { 'starting': undefined, 'ending': undefined }
 
 /* Here we create an anonymous array that contain the id
  * of toolbar actions, for each item we select the DOM

@@ -63,6 +63,7 @@ main div#drag button.state {
   background: var(--clr_main);
   border: none;
   color: var(--clr_bakcground);
+  z-index: 1;
 }
 main div#drag button.state.initial::after {
   position: absolute;
@@ -112,6 +113,16 @@ main div#drag div#contextmenu button {
 }
 main div#drag div#contextmenu button:hover {
   background: var(--clr_black);
+}
+main div#drag svg.link {
+  position: absolute;
+}
+main div#drag svg.link path {
+  fill: transparent;
+  stroke: var(--clr_black);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 /* -- input data -- */
 main div.input_data {
