@@ -1,5 +1,121 @@
 /* This is an object that saves functions linked to actions
  * that user can do with an state */
+const statesVisualData = () => {
+  const position = {
+    stx: link.starting.offsetLeft + 30,
+    sty: link.starting.offsetTop + 30,
+    edx: link.ending.offsetLeft + 30,
+    edy: link.ending.offsetTop + 30
+  }
+  const vector = {
+    'top': position.sty < position.edy ? position.sty : position.edy,
+    'left': position.stx < position.edx ? position.stx : position.edx,
+    'height': position.sty > position.edy ? position.sty - position.edy : position.edy - position.sty,
+    'width': position.stx > position.edx ? position.stx - position.edx : position.edx - position.stx
+  }
+  return {position, vector}
+}
+const drawDiagonalPath = (svg, path) => {
+  const {position, vector} = statesVisualData()
+  const direction = {
+    vertical: position.sty < position.edy ? 'down' : 'up',
+    horizontal: position.stx < position.edx ? 'right' : 'left'
+  }
+  const path_data = {
+    m: `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`,
+    c: [
+      `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`,
+      `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`,
+      `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`
+    ]
+  }
+
+  svg.classList.add('link')
+
+  svg.style.top = `${vector.top}px`
+  svg.style.left = `${vector.left}px`
+  svg.style.height = `${vector.height}px`
+  svg.style.width = `${vector.width}px`
+
+  svg.setAttribute('viewbox', `0 0 ${vector.width} ${vector.height}`)
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+
+  path.setAttributeNS(null, 'd', `M ${path_data.m} C ${path_data.c[0]}, ${path_data.c[1]}, ${path_data.c[2]}`)
+
+  svg.appendChild(path)
+  box_drag.appendChild(svg)
+}
+
+const drawLinearPath = (svg, path, side) => {
+  const {position, vector} = statesVisualData()
+  const direction = {
+    vertical: position.sty < position.edy ? 'down' : 'up',
+    horizontal: position.stx < position.edx ? 'right' : 'left'
+  }
+
+  let path_data = undefined
+
+  svg.classList.add('link')
+
+  svg.style.top = `${vector.top}px`
+  svg.style.left = `${vector.left}px`
+
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+
+  if (side === 'horizontal') {
+    path_data = {
+      m: `${direction.horizontal === 'right' ? '0' : vector.width} 0`,
+      l: `${direction.horizontal === 'left' ? '0' : vector.width} 0`
+    }
+
+    svg.style.height = `1px`
+    svg.style.width = `${vector.width}px`
+
+    svg.setAttribute('viewbox', `0 0 ${vector.width} 1`)
+
+  } else {
+    path_data = {
+      m: `0 ${direction.vertical === 'down' ? '0' : vector.height}`,
+      l: `0 ${direction.vertical === 'up' ? '0' : vector.height}`
+    }
+
+    svg.style.height = `${vector.height}px`
+    svg.style.width = `1px`
+
+    svg.setAttribute('viewbox', `0 0 1 ${vector.height}`)
+  }
+
+  path.setAttributeNS(null, 'd', `M ${path_data.m} L ${path_data.l}`)
+  svg.appendChild(path)
+  box_drag.appendChild(svg)
+}
+
+const drawCyclePath = (svg, path) => {
+  const {position, vector} = statesVisualData()
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
+  const link_container = document.createElement('div')
+
+  link_container.className = 'link_container circle'
+
+  link_container.style.top = `${vector.top - 60}px`
+  link_container.style.left = `${vector.left}px`
+  link_container.style.height = `60px`
+  link_container.style.width = `60px`
+
+  svg.classList.add('link')
+
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+  svg.setAttribute('viewbox', `0 0 60 60`)
+
+  circle.setAttributeNS(null, 'cx', '30')
+  circle.setAttributeNS(null, 'cy', '30')
+  circle.setAttributeNS(null, 'r', '29.5')
+  svg.appendChild(circle)
+
+  link_container.appendChild(svg)
+  box_drag.appendChild(link_container)
+}
+
 const stateTools = {
   /* Prevent an console error alert */
   'handleCursor': e => e.preventDefault(),
@@ -10,69 +126,31 @@ const stateTools = {
     }
 
     link.ending = e.target
-
-    const position = {
-      stx: link.starting.offsetLeft + 30,
-      sty: link.starting.offsetTop + 30,
-      edx: link.ending.offsetLeft + 30,
-      edy: link.ending.offsetTop + 30
-    }
-    const vector = {
-      'top': position.sty < position.edy ? position.sty : position.edy,
-      'left': position.stx < position.edx ? position.stx : position.edx,
-      'height': position.sty > position.edy ? position.sty - position.edy : position.edy - position.sty,
-      'width': position.stx > position.edx ? position.stx - position.edx : position.edx - position.stx
-    }
     
+    const position = statesVisualData().position
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');  
-    const name = prompt('Nombre de la transición:')
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path')
 
-    let aux_searching = 0
-    let repeated = false
-    let direction = {
-      vertical: position.sty < position.edy ? 'down' : 'up',
-      horizontal: position.stx < position.edx ? 'right' : 'left'
-    }
-    let m = `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`
-    let c = {
-      c1: `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`,
-      c2: `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`,
-      c3: `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`
+    let name = undefined
+
+    while(!name) {
+      name = prompt('Nombre de la transición (solo 1 caracter):')
+
+      if (name.length > 1)
+        name = undefined
+
+      if (name === '' || name === ' ')
+        name = 'λ'
     }
 
-    if (name)
-      Object.keys(states).forEach(id => {
-        aux_searching = Object.keys(states[id].transitions).findIndex(key => key === name)
+    svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
 
-        if (aux_searching > -1) {
-          repeated = true
-          return false
-        }
-      })
+    link.starting.innerText === link.ending.innerText ? drawCyclePath(svg, path)
+    : position.stx === position.edx ? drawLinearPath(svg, path, 'vertical')
+    : position.sty === position.edy ? drawLinearPath(svg, path, 'horizontal')
+    : drawDiagonalPath(svg, path)
 
-    if (repeated) {
-      alert('El nombre de la transición ya esta puesto')
-      link = { starting: undefined, ending: undefined }
-      return false
-    }
-    
-    svg.classList.add('link')
-
-    svg.style.top = `${vector.top}px`
-    svg.style.left = `${vector.left}px`
-    svg.style.height = `${vector.height}px`
-    svg.style.width = `${vector.width}px`
-
-    svg.setAttribute('viewbox', `0 0 ${vector.width} ${vector.height}`)
-    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-
-    path.setAttributeNS(null, 'd', `M ${m} C ${c.c1}, ${c.c2}, ${c.c3}`)
-
-    svg.appendChild(path)
-    box_drag.appendChild(svg)
-
-    states[link.starting.innerText].transitions[name || `a${transition_num++}`] = link.ending.innerText
+    states[link.starting.innerText].transitions[name] = link.ending.innerText
 
     link = { starting: undefined, ending: undefined }
   },
@@ -143,8 +221,8 @@ const handleAdd = e => {
   node.tabIndex = '-1'
 
   node.innerText = name || `Q${state_num++}`
-  node.addEventListener('dragstart', stateTools['handleDragstart'])
-  node.addEventListener('dragend', stateTools['handleDragend'])
+  node.addEventListener('dragstart', evt => action === 'Cursor' ? stateTools['handleDragstart'](evt) : false)
+  node.addEventListener('dragend', evt => action === 'Cursor' ? stateTools['handleDragend'](evt) : false)
   node.addEventListener('contextmenu', evt => action === 'Cursor' ? stateTools['handleContextmenu'](evt) : false)
   node.addEventListener('click', evt => stateTools[`handle${action}`](evt) ?? false)
 
@@ -212,7 +290,6 @@ const draggable = {
 /* Glogal variables */
 let ctx_selected_state = undefined
 let state_num = 0
-let transition_num = 0
 let action = 'Cursor'
 let link = { 'starting': undefined, 'ending': undefined }
 
