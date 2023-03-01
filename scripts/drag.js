@@ -47,7 +47,7 @@ const drawDiagonalPath = name => {
   }
 
   svg.classList.add('link')
-  svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
+  svg.setAttribute('key', `${link.starting.getAttribute('key')}${name}${link.ending.getAttribute('key')}`)
   svg.setAttribute('viewbox', `0 0 ${vector.w} ${vector.h}`)
 
   svg.style.top = `${vector.t}px`
@@ -74,13 +74,12 @@ const drawLinearPath = (side, name) => {
   
   svg.classList.add('link')
   svg.setAttribute('viewbox', `0 0 ${side === 'horizontal' ? vector.w : '10'} ${side === 'vertical' ? vector.h : '10'}`)
-  svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
+  svg.setAttribute('key', `${link.starting.getAttribute('key')}${name}${link.ending.getAttribute('key')}`)
 
   svg.style.top = `${side === 'horizontal' ? vector.t - 5 : vector.t}px`
   svg.style.left = `${side === 'vertical' ? vector.l - 5 : vector.l}px`
   svg.style.width = `${side === 'horizontal' ? vector.w : '10'}px`
   svg.style.height = `${side === 'vertical' ? vector.h : '10'}px`
-
   
   side === 'horizontal'
   ? path_data = {
@@ -107,7 +106,7 @@ const drawCyclePath = name => {
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 
   svg.classList.add('link')
-  svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
+  svg.setAttribute('key', `${link.starting.getAttribute('key')}${name}${link.ending.getAttribute('key')}`)
   svg.setAttribute('viewbox', '0 0 70 70')
 
   svg.style.top = `${position.sty - 65}px`
@@ -141,6 +140,10 @@ const stateTools = {
     }
     
     const {position} = statesVisualData()
+    const init_state = link.starting.getAttribute('key')
+    const final_state = link.ending.getAttribute('key') 
+
+    let {transitions} = states[init_state]
     let name = undefined
 
     while(!name) {
@@ -148,27 +151,38 @@ const stateTools = {
       
       if (name.length > 1)
         name = undefined
+
       if (name.trim() === '')
         name = 'λ'
     }
 
-    if (link.starting.innerText === link.ending.innerText)
-      drawCyclePath(name)
-    else if (position.stx === position.edx)
-      drawLinearPath('vertical', name)
-    else if (position.sty === position.edy)
-      drawLinearPath('horizontal', name)
-    else
-      drawDiagonalPath(name)
+    ;(() => {
+      if (init_state === final_state)
+        return drawCyclePath(name)
 
-    states[link.starting.innerText].transitions[name] = link.ending.innerText
+      if (position.stx === position.edx)
+        return drawLinearPath('vertical', name)
+
+      if (position.sty === position.edy)
+        return drawLinearPath('horizontal', name)
+
+      drawDiagonalPath(name)
+    })()
 
     link = { starting: undefined, ending: undefined }
+
+    if (!transitions[name])
+      transitions[name] = new Set()
+
+    if (!transitions[name].has(final_state))
+      return transitions[name].add(final_state)
+
+    alert('Esta transición ya existe')
   },
   /* Function to remove an state first of the states' object
    * and then fron thw UI */
   'handleRemove': e => {
-    delete states[e.target.innerText]
+    delete states[e.target.getAttribute('key')]
     box_drag.removeChild(e.target)
   },
   /* Visual to do a visual change when state is moving */
@@ -198,11 +212,11 @@ const stateTools = {
 
     ctx_selected_state = e.target
 
-    btn_set_initial.innerText = states[e.target.innerText].isInitial
+    btn_set_initial.innerText = states[e.target.getAttribute('key')].isInitial
     ? 'Quitar inicial'
     : 'Agregar inicial'
 
-    btn_set_final.innerText = states[e.target.innerText].isFinal
+    btn_set_final.innerText = states[e.target.getAttribute('key')].isFinal
     ? 'Quitar final'
     : 'Agregar final'
     
@@ -232,6 +246,7 @@ const handleAdd = e => {
   node.tabIndex = '-1'
 
   node.innerText = name || `Q${state_num++}`
+  node.setAttribute('key', name || `Q${state_num++}`)
   node.addEventListener('dragstart', evt => action === 'Cursor' ? stateTools['handleDragstart'](evt) : false)
   node.addEventListener('dragend', evt => action === 'Cursor' ? stateTools['handleDragend'](evt) : false)
   node.addEventListener('contextmenu', evt => action === 'Cursor' ? stateTools['handleContextmenu'](evt) : false)
@@ -243,11 +258,11 @@ const handleAdd = e => {
     positioned = true
   }
 
-  if (states[node.innerText] || !positioned)
+  if (states[node.getAttribute('key')] || !positioned)
     alert(!positioned ? 'El punto debe estar dentro del area' : 'El estado ya existe')
   else {
     box_drag.appendChild(node)
-    states[`${node.innerText}`] = {
+    states[`${node.getAttribute('key')}`] = {
       'transitions': {},
       'isInitial': false,
       'isFinal': false
@@ -262,7 +277,7 @@ const handleSetStatus = status => {
   if (!ctx_selected_state)
     return false
 
-  const id = ctx_selected_state.innerText
+  const id = ctx_selected_state.getAttribute('key')
 
   if (status === 'initial') {
     states[id].isInitial
