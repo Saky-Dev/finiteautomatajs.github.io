@@ -9,6 +9,17 @@ main {
   gap: 10px;
   padding: 10px;
 }
+main svg.vector_aux {
+  position: absolute;
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+}
+main svg.vector_aux defs marker#vector_arrow {
+  stroke: none;
+  fill: var(--clr_grey);
+}
 /* -- toolbar -- */
 main aside {
   grid-column: 1;
@@ -50,7 +61,6 @@ main aside ul.toolbar li:nth-child(n+5) button:hover {
 main div#drag {
   width: 100%;
   height: 100%;
-  background: var(--clr_bakcground);
   border-radius: 8px;
   outline: 4px solid var(--clr_main);
   outline-offset: -4px;
@@ -119,23 +129,8 @@ main div#drag div#contextmenu button {
 main div#drag div#contextmenu button:hover {
   background: var(--clr_black);
 }
-main div#drag div.link_container {
-  display: flex;
-  position: absolute;
-}
-main div#drag div.link_container.circle::after {
-  position: absolute;
-  width: 14px;
-  height: 8px;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  top: calc(50% - 8px);
-  left: -7px;
-  content: '';
-  background: var(--clr_grey);
-}
 main div#drag svg.link {
-  width: 100%;
-  height: 100%;
+  position: absolute;
 }
 main div#drag svg.link path,
 main div#drag svg.link circle {
@@ -144,6 +139,7 @@ main div#drag svg.link circle {
   stroke-width: 1;
   stroke-linecap: round;
   stroke-linejoin: round;
+  marker-end: url(#vector_arrow);
 }
 /* -- input data -- */
 main div.input_data {

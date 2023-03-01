@@ -1,154 +1,165 @@
-/* This is an object that saves functions linked to actions
- * that user can do with an state */
+/* This functino do calculations with the measures of linked states
+ * first get the position at center of state, then width alll the
+ * positions calc the measures of svg element that connect the states
+ * and finally get if the direcction of link in vertical and horiizontal */
 const statesVisualData = () => {
   const position = {
-    stx: link.starting.offsetLeft + 30,
-    sty: link.starting.offsetTop + 30,
-    edx: link.ending.offsetLeft + 30,
-    edy: link.ending.offsetTop + 30
+    stx: link.starting.offsetLeft + 30, // starting x
+    sty: link.starting.offsetTop + 30, // starting y
+    edx: link.ending.offsetLeft + 30, // ending x
+    edy: link.ending.offsetTop + 30 // ending y
   }
   const vector = {
-    'top': position.sty < position.edy ? position.sty : position.edy,
-    'left': position.stx < position.edx ? position.stx : position.edx,
-    'height': position.sty > position.edy ? position.sty - position.edy : position.edy - position.sty,
-    'width': position.stx > position.edx ? position.stx - position.edx : position.edx - position.stx
+    t: position.sty < position.edy ? position.sty : position.edy, // top
+    l: position.stx < position.edx ? position.stx : position.edx, // left
+    h: position.sty > position.edy ? position.sty - position.edy : position.edy - position.sty, // height
+    w: position.stx > position.edx ? position.stx - position.edx : position.edx - position.stx // width
   }
-  return {position, vector}
-}
-const drawDiagonalPath = (svg, path) => {
-  const {position, vector} = statesVisualData()
   const direction = {
-    vertical: position.sty < position.edy ? 'down' : 'up',
-    horizontal: position.stx < position.edx ? 'right' : 'left'
+    v: position.sty < position.edy ? 'down' : 'up', // vertical
+    h: position.stx < position.edx ? 'right' : 'left' // horizontal
+  }
+  return {position, vector, direction}
+}
+/* This function make a link between two states that have
+ * all coodinates in defferent places, first get vector and direction
+ * from visual data, instanec a svg and a path and calculate the
+ * displacement to can see the arrow, then calculate the path position
+ * with the displacement, add the measures to svg element and finally
+ * add the path into svg and svg to drag area */
+const drawDiagonalPath = name => {
+  const {vector, direction} = statesVisualData()
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+
+  const displacement = 100 * 30 / (vector.h > vector.w ? vector.h : vector.w)
+  const move = {
+    w: Math.round((vector.w * displacement / 100)),
+    h: Math.round((vector.h * displacement / 100))
   }
   const path_data = {
-    m: `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`,
+    m: `${direction.h === 'right' ? move.w : vector.w - move.w} ${direction.v === 'down' ? move.h : vector.h - move.h}`,
     c: [
-      `${direction.horizontal === 'right' ? '0' : vector.width} ${direction.vertical === 'down' ? '0' : vector.height}`,
-      `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`,
-      `${direction.horizontal === 'right' ? vector.width : '0'} ${direction.vertical === 'down' ? vector.height : '0'}`
+      `${direction.h === 'right' ? move.w : vector.w - move.w} ${direction.v === 'down' ? move.h : vector.h - move.h}`,
+      `${direction.h === 'right' ? vector.w - move.w : move.w} ${direction.v === 'down' ? vector.h - move.h : move.h}`,
+      `${direction.h === 'right' ? vector.w - move.w : move.w} ${direction.v === 'down' ? vector.h - move.h : move.h}`
     ]
   }
 
   svg.classList.add('link')
+  svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
+  svg.setAttribute('viewbox', `0 0 ${vector.w} ${vector.h}`)
 
-  svg.style.top = `${vector.top}px`
-  svg.style.left = `${vector.left}px`
-  svg.style.height = `${vector.height}px`
-  svg.style.width = `${vector.width}px`
-
-  svg.setAttribute('viewbox', `0 0 ${vector.width} ${vector.height}`)
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+  svg.style.top = `${vector.t}px`
+  svg.style.left = `${vector.l}px`
+  svg.style.height = `${vector.h}px`
+  svg.style.width = `${vector.w}px`
 
   path.setAttributeNS(null, 'd', `M ${path_data.m} C ${path_data.c[0]}, ${path_data.c[1]}, ${path_data.c[2]}`)
 
   svg.appendChild(path)
   box_drag.appendChild(svg)
 }
-
-const drawLinearPath = (svg, path, side) => {
-  const {position, vector} = statesVisualData()
-  const direction = {
-    vertical: position.sty < position.edy ? 'down' : 'up',
-    horizontal: position.stx < position.edx ? 'right' : 'left'
-  }
+/* Here the program can draw a linear line if one of the both coordinates
+ * between the two states are the same, so it receives if the states are in
+ * linear horizontal or vertical, then add data to svg, and calculate the info
+ * to path, add that information and finally add both elements (svg, path )
+ * to drag area */
+const drawLinearPath = (side, name) => {
+  const {vector, direction} = statesVisualData()
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 
   let path_data = undefined
-
+  
   svg.classList.add('link')
+  svg.setAttribute('viewbox', `0 0 ${side === 'horizontal' ? vector.w : '10'} ${side === 'vertical' ? vector.h : '10'}`)
+  svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
 
-  svg.style.top = `${vector.top}px`
-  svg.style.left = `${vector.left}px`
+  svg.style.top = `${side === 'horizontal' ? vector.t - 5 : vector.t}px`
+  svg.style.left = `${side === 'vertical' ? vector.l - 5 : vector.l}px`
+  svg.style.width = `${side === 'horizontal' ? vector.w : '10'}px`
+  svg.style.height = `${side === 'vertical' ? vector.h : '10'}px`
 
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-
-  if (side === 'horizontal') {
-    path_data = {
-      m: `${direction.horizontal === 'right' ? '0' : vector.width} 0`,
-      l: `${direction.horizontal === 'left' ? '0' : vector.width} 0`
+  
+  side === 'horizontal'
+  ? path_data = {
+      m: `${direction.h === 'right' ? '30' : vector.w - 30} 5`,
+      l: `${direction.h === 'left' ? '35' : vector.w - 35} 5`
     }
-
-    svg.style.height = `1px`
-    svg.style.width = `${vector.width}px`
-
-    svg.setAttribute('viewbox', `0 0 ${vector.width} 1`)
-
-  } else {
-    path_data = {
-      m: `0 ${direction.vertical === 'down' ? '0' : vector.height}`,
-      l: `0 ${direction.vertical === 'up' ? '0' : vector.height}`
+  : path_data = {
+      m: `5 ${direction.v === 'down' ? '30' : vector.h - 30}`,
+      l: `5 ${direction.v === 'up' ? '35' : vector.h - 35}`
     }
-
-    svg.style.height = `${vector.height}px`
-    svg.style.width = `1px`
-
-    svg.setAttribute('viewbox', `0 0 1 ${vector.height}`)
-  }
 
   path.setAttributeNS(null, 'd', `M ${path_data.m} L ${path_data.l}`)
+
   svg.appendChild(path)
   box_drag.appendChild(svg)
 }
 
-const drawCyclePath = (svg, path) => {
-  const {position, vector} = statesVisualData()
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
-  const link_container = document.createElement('div')
-
-  link_container.className = 'link_container circle'
-
-  link_container.style.top = `${vector.top - 60}px`
-  link_container.style.left = `${vector.left}px`
-  link_container.style.height = `60px`
-  link_container.style.width = `60px`
+/* This function draw a semi circle that link the same state
+ * if it's the same state all calculous are pre-defined
+ * the svg data, path information and only change the postion */
+const drawCyclePath = name => {
+  const {position} = statesVisualData()
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 
   svg.classList.add('link')
+  svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
+  svg.setAttribute('viewbox', '0 0 70 70')
 
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-  svg.setAttribute('viewbox', `0 0 60 60`)
+  svg.style.top = `${position.sty - 65}px`
+  svg.style.left = `${position.stx - 5}px`
+  svg.style.width = '70px'
+  svg.style.height = '70px'
 
-  circle.setAttributeNS(null, 'cx', '30')
-  circle.setAttributeNS(null, 'cy', '30')
-  circle.setAttributeNS(null, 'r', '29.5')
-  svg.appendChild(circle)
+  path.setAttribute('d', `M 35 65 C 35 65, 65 65, 65 35 C 65 5, 35 5, 35 5 C 5 5, 5 30, 5 30`)
 
-  link_container.appendChild(svg)
-  box_drag.appendChild(link_container)
+  svg.appendChild(path)
+  box_drag.appendChild(svg)
 }
 
+/* This is an object that saves functions linked to actions
+ * that user can do with an state */
 const stateTools = {
   /* Prevent an console error alert */
   'handleCursor': e => e.preventDefault(),
+  /* This function create a link between two states, it first check
+   * that both state are selected, then get the postiion of both
+   * and get the neme by the user through a promt, if the name is
+   * larger than one the question is do it again, if the name is empy
+   * or spae that is changed to lambda, then the program draw the link
+   * and finally the link is added to states object and the link is clean */
   'handleLink': e => {
-    if (!link.starting) {
+    if (link.starting)
+      link.ending = e.target
+    else {
       link.starting = e.target
       return false
     }
-
-    link.ending = e.target
     
-    const position = statesVisualData().position
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path')
-
+    const {position} = statesVisualData()
     let name = undefined
 
     while(!name) {
       name = prompt('Nombre de la transición (solo 1 caracter):')
-
+      
       if (name.length > 1)
         name = undefined
-
-      if (name === '' || name === ' ')
+      if (name.trim() === '')
         name = 'λ'
     }
 
-    svg.setAttribute('key', `${link.starting.innerText}${name}${link.ending.innerText}`)
-
-    link.starting.innerText === link.ending.innerText ? drawCyclePath(svg, path)
-    : position.stx === position.edx ? drawLinearPath(svg, path, 'vertical')
-    : position.sty === position.edy ? drawLinearPath(svg, path, 'horizontal')
-    : drawDiagonalPath(svg, path)
+    if (link.starting.innerText === link.ending.innerText)
+      drawCyclePath(name)
+    else if (position.stx === position.edx)
+      drawLinearPath('vertical', name)
+    else if (position.sty === position.edy)
+      drawLinearPath('horizontal', name)
+    else
+      drawDiagonalPath(name)
 
     states[link.starting.innerText].transitions[name] = link.ending.innerText
 
@@ -277,7 +288,7 @@ const box_contextmenu = document.querySelector('div#contextmenu')
 const box_drag = document.querySelector('div#drag')
 const btn_set_initial = document.querySelector('button#set_initial')
 const btn_set_final = document.querySelector('button#set_final')
-
+const svg_vector_area = document.querySelector('svg#vector_area')
 
 /* Get size and position of drag area*/
 const draggable = {
