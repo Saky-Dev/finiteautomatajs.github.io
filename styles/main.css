@@ -141,6 +141,14 @@ main div#drag svg.link circle {
   stroke-linejoin: round;
   marker-end: url(#vector_arrow);
 }
+main div#drag span.indicator {
+  position: absolute;
+  font-size: 0.8em;
+  padding: 4px;
+  border-radius: 4px;
+  background: var(--clr_grey);
+  color: var(--clr_bakcground);
+}
 /* -- input data -- */
 main div.input_data {
   width: 100%;
