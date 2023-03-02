@@ -141,7 +141,7 @@ main div#drag svg.link circle {
   stroke-linejoin: round;
   marker-end: url(#vector_arrow);
 }
-main div#drag span.indicator {
+main div#drag span.pointer {
   position: absolute;
   font-size: 0.8em;
   padding: 4px;

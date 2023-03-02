@@ -40,11 +40,8 @@ const statesVisualData = () => {
  * displacement to can see the arrow, then calculate the path position
  * with the displacement, add the measures to svg element and finally
  * add the path into svg and svg to drag area */
-const drawDiagonalPath = name => {
+const drawDiagonalPath = (svg, path, text) => {
   const {position, vector, direction} = statesVisualData()
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-  const text = document.createElement('span')
 
   const displacement = 100 * 30 / (vector.h > vector.w ? vector.h : vector.w)
   const move = {
@@ -60,8 +57,6 @@ const drawDiagonalPath = name => {
     ]
   }
 
-  svg.classList.add('link')
-  svg.setAttribute('key', `${link.starting.getAttribute('key')}${name}${link.ending.getAttribute('key')}`)
   svg.setAttribute('viewbox', `0 0 ${vector.w} ${vector.h}`)
 
   svg.style.top = `${vector.t}px`
@@ -69,33 +64,22 @@ const drawDiagonalPath = name => {
   svg.style.height = `${vector.h}px`
   svg.style.width = `${vector.w}px`
 
-  path.setAttributeNS(null, 'd', `M ${path_data.m} C ${path_data.c[0]}, ${path_data.c[1]}, ${path_data.c[2]}`)
+  path.setAttribute('d', `M ${path_data.m} C ${path_data.c[0]}, ${path_data.c[1]}, ${path_data.c[2]}`)
 
-  text.className = 'indicator'
-  text.innerHTML = `${getTransitions().map(tr => tr)}`
   text.style.top = `${position.sty + (direction.v === 'down' ? move.h : - move.h * 2)}px`
   text.style.left = `${position.stx + (direction.h === 'right' ? move.w * 1.2 : -move.w * 2)}px`
-
-  svg.appendChild(path)
-  box_drag.appendChild(svg)
-  box_drag.appendChild(text)
 }
 /* Here the program can draw a linear line if one of the both coordinates
  * between the two states are the same, so it receives if the states are in
  * linear horizontal or vertical, then add data to svg, and calculate the info
  * to path, add that information and finally add both elements (svg, path )
  * to drag area */
-const drawLinearPath = (side, name) => {
+const drawLinearPath = (side, svg, path, text) => {
   const {position, vector, direction} = statesVisualData()
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-  const text = document.createElement('span')
 
   let path_data = undefined
   
-  svg.classList.add('link')
   svg.setAttribute('viewbox', `0 0 ${side === 'horizontal' ? vector.w : '10'} ${side === 'vertical' ? vector.h : '10'}`)
-  svg.setAttribute('key', `${link.starting.getAttribute('key')}${name}${link.ending.getAttribute('key')}`)
 
   svg.style.top = `${side === 'horizontal' ? vector.t - 5 : vector.t}px`
   svg.style.left = `${side === 'vertical' ? vector.l - 5 : vector.l}px`
@@ -112,10 +96,7 @@ const drawLinearPath = (side, name) => {
       l: `5 ${direction.v === 'up' ? '35' : vector.h - 35}`
     }
 
-  path.setAttributeNS(null, 'd', `M ${path_data.m} L ${path_data.l}`)
-
-  text.className = 'indicator'
-  text.innerHTML = `${getTransitions().map(tr => tr)}`
+  path.setAttribute('d', `M ${path_data.m} L ${path_data.l}`)
 
   if (side === 'horizontal') {
     text.style.top = `${position.sty - 10}px`
@@ -124,23 +105,14 @@ const drawLinearPath = (side, name) => {
     text.style.top = `${direction.v === 'down' ? position.sty + 40 : position.sty - 60}px`
     text.style.left = `${position.stx - 10}px`
   }
-
-  svg.appendChild(path)
-  box_drag.appendChild(svg)
-  box_drag.appendChild(text)
 }
 
 /* This function draw a semi circle that link the same state
  * if it's the same state all calculous are pre-defined
  * the svg data, path information and only change the postion */
-const drawCyclePath = name => {
+const drawCyclePath = (svg, path, text) => {
   const {position} = statesVisualData()
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-  const text = document.createElement('span')
 
-  svg.classList.add('link')
-  svg.setAttribute('key', `${link.starting.getAttribute('key')}${name}${link.ending.getAttribute('key')}`)
   svg.setAttribute('viewbox', '0 0 70 70')
 
   svg.style.top = `${position.sty - 65}px`
@@ -150,14 +122,8 @@ const drawCyclePath = name => {
 
   path.setAttribute('d', `M 35 65 C 35 65, 65 65, 65 35 C 65 5, 35 5, 35 5 C 5 5, 5 30, 5 30`)
 
-  text.className = 'indicator'
-  text.innerHTML = `${getTransitions().map(tr => tr)}`
   text.style.top = `${position.sty - 10}px`
   text.style.left = `${position.stx + 35}px`
-
-  svg.appendChild(path)
-  box_drag.appendChild(svg)
-  box_drag.appendChild(text)
 }
 
 /* This is an object that saves functions linked to actions
@@ -201,14 +167,35 @@ const stateTools = {
       return alert('Esta transición ya existe')
 
     ;(() => {
-      if (init_state === final_state)
-        return drawCyclePath(name)
-      if (position.stx === position.edx)
-        return drawLinearPath('vertical', name)
-      if (position.sty === position.edy)
-        return drawLinearPath('horizontal', name)
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+      const text = document.createElement('span')
+      const svg_key = `${link.starting.getAttribute('key')}[link]${link.ending.getAttribute('key')}`
 
-      drawDiagonalPath(name)
+      if ([...box_drag.children].find(child => child.getAttribute('key') === svg_key)) {
+        document.querySelector(`span.pointer[key='ptr_${svg_key}']`).innerHTML = `${getTransitions().map(tr => tr)}`
+        return false
+      }
+
+      svg.classList.add('link')
+      svg.setAttribute('key', svg_key)
+
+      text.className = 'pointer'
+      text.innerHTML = `${getTransitions().map(tr => tr)}`
+      text.setAttribute('key', `ptr_${svg_key}`)
+
+      svg.appendChild(path)
+      box_drag.appendChild(svg)
+      box_drag.appendChild(text)
+
+      if (init_state === final_state)
+        return drawCyclePath(svg, path, text)
+      if (position.stx === position.edx)
+        return drawLinearPath('vertical', svg, path, text)
+      if (position.sty === position.edy)
+        return drawLinearPath('horizontal', svg, path, text)
+      
+      drawDiagonalPath(svg, path, text)
     })()
 
     link = {starting: undefined, ending: undefined}
