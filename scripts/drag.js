@@ -74,10 +74,52 @@ const drawDiagonalPath = (svg, path, text) => {
  * linear horizontal or vertical, then add data to svg, and calculate the info
  * to path, add that information and finally add both elements (svg, path )
  * to drag area */
-const drawLinearPath = (side, svg, path, text) => {
+const drawLinearPath = (side, svg, path, text, reverse_key) => {
   const {position, vector, direction} = statesVisualData()
+  const is_second = document.querySelector(`svg.link[key='${reverse_key}']`) ? true : false 
+  const measure = is_second ? 40 : 10
 
   let path_data = undefined
+
+  if (side === 'horizontal') {
+    text.style.top = `${position.sty - 10}px`
+    text.style.left = `${direction.h === 'right' ? position.stx + 40 : position.stx - 80}px`
+  } else {
+    text.style.top = `${direction.v === 'down' ? position.sty + 40 : position.sty - 60}px`
+    text.style.left = `${position.stx - 10}px`
+  }
+
+  svg.setAttribute('viewbox', `0 0 ${side === 'horizontal' ? vector.w : measure} ${side === 'vertical' ? vector.h : measure}`)
+
+  svg.style.top = `${side === 'horizontal' ? vector.t - 5 : vector.t}px`
+  svg.style.left = `${side === 'vertical' ? vector.l - 5 : vector.l}px`
+  svg.style.width = `${side === 'horizontal' ? vector.w : measure}px`
+  svg.style.height = `${side === 'vertical' ? vector.h : measure}px`
+
+  console.log(is_second, reverse_key)
+
+  if (is_second) {
+    side === 'horizontal'
+    ? path_data = {
+        m: `${direction.h === 'right' ? '30' : vector.w - 30} 5`,
+        c: [
+          `${Math.round(vector.w / 3) * (direction.h === 'right' ? 1 : 2)} 40`,
+          `${Math.round(vector.w / 3) * (direction.h === 'right' ? 2 : 1)} 40`,
+          `${direction.h === 'left' ? '35' : vector.w - 35} 5`
+        ]
+      }
+    : path_data = {
+        m: `5 ${direction.v === 'down' ? '30' : vector.h - 30}`,
+        c: [
+          `40 ${Math.round(vector.h / 3) * (direction.v === 'up' ? 2 : 1)}`,
+          `40 ${Math.round(vector.h / 3) * (direction.v === 'up' ? 1 : 2)}`,
+          `5 ${direction.v === 'up' ? '35' : vector.h - 35}`
+        ]
+      }
+
+    path.setAttribute('d', `M ${path_data.m} C ${path_data.c.map(point => point)}`)
+    return false
+  }
   
   svg.setAttribute('viewbox', `0 0 ${side === 'horizontal' ? vector.w : '10'} ${side === 'vertical' ? vector.h : '10'}`)
 
@@ -97,14 +139,6 @@ const drawLinearPath = (side, svg, path, text) => {
     }
 
   path.setAttribute('d', `M ${path_data.m} L ${path_data.l}`)
-
-  if (side === 'horizontal') {
-    text.style.top = `${position.sty - 10}px`
-    text.style.left = `${direction.h === 'right' ? position.stx + 40 : position.stx - 80}px`
-  } else {
-    text.style.top = `${direction.v === 'down' ? position.sty + 40 : position.sty - 60}px`
-    text.style.left = `${position.stx - 10}px`
-  }
 }
 
 /* This function draw a semi circle that link the same state
@@ -171,6 +205,7 @@ const stateTools = {
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
       const text = document.createElement('span')
       const svg_key = `${link.starting.getAttribute('key')}[link]${link.ending.getAttribute('key')}`
+      const reverse_key = `${link.ending.getAttribute('key')}[link]${link.starting.getAttribute('key')}`
 
       if ([...box_drag.children].find(child => child.getAttribute('key') === svg_key)) {
         document.querySelector(`span.pointer[key='ptr_${svg_key}']`).innerHTML = `${getTransitions().map(tr => tr)}`
@@ -191,9 +226,9 @@ const stateTools = {
       if (init_state === final_state)
         return drawCyclePath(svg, path, text)
       if (position.stx === position.edx)
-        return drawLinearPath('vertical', svg, path, text)
+        return drawLinearPath('vertical', svg, path, text, reverse_key)
       if (position.sty === position.edy)
-        return drawLinearPath('horizontal', svg, path, text)
+        return drawLinearPath('horizontal', svg, path, text, reverse_key)
       
       drawDiagonalPath(svg, path, text)
     })()
