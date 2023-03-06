@@ -22,8 +22,105 @@ main svg.vector_aux defs marker#vector_arrow {
 }
 main div.hidden_window {
   position: fixed;
+  top: 5vh;
+  left: 25vw;
+  width: 50vw;
+  max-width: 50vw;
+  height: 90vh;
+  max-height: 90vh;
+  border-radius: 10px;
+  background: var(--clr_bakcground);
+  border-radius: 5;
+  outline: 4px solid var(--clr_main_dark);
+  z-index: 15;
+  padding: 6vh 3vw;
+  transition: 0.15s ease;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: auto;
+}
+main div.hidden_window.hidden {
   opacity: 0;
   visibility: hidden;
+}
+main div.hidden_window.visible {
+  opacity: 1;
+  visibility: visible;
+}
+main div.hidden_window button.close_window {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  left: auto;
+  bottom: auto;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--clr_main);
+  border: none;
+  border-radius: 5px;
+  transition: 0.15s ease;
+}
+main div.hidden_window button.close_window:focus,
+main div.hidden_window button.close_window:hover {
+  background: var(--clr_main_dark);
+}
+main div.hidden_window button.close_window img {
+  width: 45%;
+  height: 45%;
+  filter: brightness(0) invert(1);
+}
+main div.hidden_window div.trans_table {
+  width: fit-content;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3px;
+}
+main div.hidden_window div.trans_table div.tt_row {
+  width: fit-content;
+  height: fit-content;
+  align-items: flex-start;
+  justify-content: flex-start;
+  display: flex;
+  gap: 3px;
+}
+main div.hidden_window div.trans_table div.tt_row:first-child span.tt_column {
+  color: var(--clr_bakcground);
+  background: var(--clr_main);
+}
+main div.hidden_window div.trans_table div.tt_row span.tt_column {
+  width: 5vw;
+  height: 4vh;
+  border: 2px solid var(--clr_main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--clr_grey);
+  font-size: 0.9em;
+}
+main div.hidden_window div.trans_table div.tt_row span.tt_column:first-child {
+  color: var(--clr_bakcground);
+  background: var(--clr_main);
+}
+main div.hidden_window div.trans_table div.tt_row span.tt_column.initial {
+  position: relative;
+}
+main div.hidden_window div.trans_table div.tt_row span.tt_column.initial::after {
+  position: absolute;
+  content: '';
+  top: 0;
+  right: 105%;
+  width: 20px;
+  height: 100%;
+  background: var(--clr_grey);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 /* -- toolbar -- */
 main aside {

@@ -51,7 +51,28 @@ const handleTransTable = () => {
   
   console.table(trans_table)
 
+  trans_table.forEach((row, ri) => {
+    const tt_row = document.createElement('div')
+    tt_row.className = 'tt_row'
+
+    row.forEach((column, ci) => {
+      const tt_column = document.createElement('span')
+
+      tt_column.innerHTML = `${column}`
+      tt_column.className = `tt_column${ri > 0 && ci === 0 && states[column].isInitial ? ' initial' : ''}`
+
+      tt_row.appendChild(tt_column)
+    })
+
+    box_trans_table.appendChild(tt_row)
+  })
+  
   box_hidden_window.className = 'hidden_window visible'
+}
+const handleCloseWindow = () => {
+  box_hidden_window.className = 'hidden_window hidden'
+
+  ;[...box_trans_table.children].forEach(child => box_trans_table.removeChild(child))
 }
 
 /* DOM elements */
@@ -63,3 +84,4 @@ const box_trans_table = document.querySelector('main div.hidden_window div.trans
 document.querySelector('button#data_add').addEventListener('click', handleDataAdd)
 document.querySelector('button#data_clear').addEventListener('click', handleDataClear)
 document.querySelector('button#table').addEventListener('click', handleTransTable)
+document.querySelector('button.close_window').addEventListener('click', handleCloseWindow)
