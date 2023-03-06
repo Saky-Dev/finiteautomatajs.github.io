@@ -20,6 +20,11 @@ main svg.vector_aux defs marker#vector_arrow {
   stroke: none;
   fill: var(--clr_grey);
 }
+main div.hidden_window {
+  position: fixed;
+  opacity: 0;
+  visibility: hidden;
+}
 /* -- toolbar -- */
 main aside {
   grid-column: 1;
