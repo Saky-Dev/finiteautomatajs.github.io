@@ -192,18 +192,19 @@ const stateTools = {
    * larger than one the question is do it again, if the name is empy
    * or spae that is changed to lambda, then the program draw the link
    * and finally the link is added to states object and the link is clean */
-  'handleLink': e => {
+  'handleLink': (e, pre_name, is_redraw) => {
     if (!link.starting)
       return link.starting = e.target
       
-    link.ending = e.target
+    if (!link.ending)
+      link.ending = e.target
     
     const {position} = statesVisualData()
     const init_state = link.starting.getAttribute('key')
     const final_state = link.ending.getAttribute('key') 
 
     let {transitions} = states[init_state]
-    let name = undefined
+    let name = pre_name
 
     while(!name) {
       name = prompt('Nombre de la transición (solo 1 caracter):')
@@ -214,12 +215,14 @@ const stateTools = {
         name = 'λ'
     }
 
-    if (!transitions[name])
-      transitions[name] = new Set()
-    if (!transitions[name].has(final_state))
-      transitions[name].add(final_state)
-    else
-      return alert('Esta transición ya existe')
+    if(!is_redraw) {
+      if (!transitions[name])
+        transitions[name] = new Set()
+      if (!transitions[name].has(final_state))
+        transitions[name].add(final_state)
+      else
+        return alert('Esta transición ya existe')
+    }
 
     ;(() => {
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -261,9 +264,7 @@ const stateTools = {
    * and then fron thw UI */
   'handleRemove': e => {
     const toRemove = e.target.getAttribute('key')
-    let links = document.querySelectorAll('svg.link')
-
-    links = [...links].filter(svg => svg.getAttribute('key').includes(toRemove))
+    const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').includes(toRemove))
 
     Object.keys(states).forEach(id => {
       Object.keys(states[id].transitions).forEach(trans => {
@@ -283,11 +284,22 @@ const stateTools = {
     })
   },
   /* Visual to do a visual change when state is moving */
-  'handleDragstart': e => e.target.style.opacity = '0.4',
+  'handleDragstart': e => {
+    const toRemove = e.target.getAttribute('key')
+    const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').includes(toRemove))
+
+    e.target.style.opacity = '0.4'
+
+    links.forEach(link => {
+      box_drag.removeChild(document.querySelector(`span.pointer[key='ptr_${link.getAttribute('key')}']`))
+      box_drag.removeChild(link)
+    })
+  },
   /* On this first check if the move is inside the drag area
    * and if its true the visual effect is removed and the
    * state is moved to the position */
   'handleDragend': e => {
+    const selected = e.target.getAttribute('key')
     const on_position = {
       'x': draggable.min_x < e.x - 30 && e.x + 30 < draggable.max_x,
       'y': draggable.min_y < e.y - 30 && e.y + 30 < draggable.max_y  
@@ -299,6 +311,27 @@ const stateTools = {
       e.target.style.left = `${e.x - 30}px`
       e.target.style.top = `${e.y - 30}px`
     }
+
+    Object.keys(states[selected].transitions).forEach(trans => {
+      states[selected].transitions[trans].forEach(res => {
+        link.starting = document.querySelector(`button.state[key='${selected}']`)
+        link.ending = document.querySelector(`button.state[key='${res}']`)
+
+        stateTools.handleLink(link.ending, trans, true)
+      })
+    })
+
+    Object.keys(states).forEach(id => {
+      Object.keys(states[id].transitions).forEach(trans => {
+        if (id !== selected && states[id].transitions[trans].has(selected)) {
+          link.starting = document.querySelector(`button.state[key='${id}']`)
+          link.ending = document.querySelector(`button.state[key='${selected}']`)
+
+          stateTools.handleLink(link.ending, trans, true)
+        }
+      })
+    })
+
   },
   /* Function to hide the default context menu then set
    * the state selected is changed, change the text 
