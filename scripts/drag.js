@@ -238,7 +238,7 @@ const stateTools = {
 
       svg.classList.add('link')
       svg.setAttribute('key', svg_key)
-      svg.addEventListener('click', handleRemoveLink)
+      svg.addEventListener('click', evt => action === 'Remove' ? handleRemoveLink(evt) : false)
 
       text.className = 'pointer'
       text.innerHTML = `${getTransitions().map(tr => tr)}`

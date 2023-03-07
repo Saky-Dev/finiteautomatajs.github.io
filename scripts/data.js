@@ -30,7 +30,10 @@ const handleDataClear = () => [...box_data.children].forEach(child => box_data.r
  * the matrix is created a div element that works like a row
  * and a span that works like a column */
 const handleTransTable = () => {
-  let states_ids = Object.keys(states)
+  const hasInitial = Object.values(states).findIndex(state => state.isInitial) < 0 ? false : true
+  const hasFinal = Object.values(states).findIndex(state => state.isFinal) < 0 ? false : true
+  const states_ids = Object.keys(states)
+
   let trans_table = []
   let transitions = new Set()
 
@@ -53,6 +56,12 @@ const handleTransTable = () => {
 
     trans_table.push(anonymous)
   })
+
+  if (trans_table[0].length < 1)
+    return alert('Debes de tener minimo dos estados y una transición')
+
+  if (!hasInitial || !hasFinal)
+    return alert('Debes definir un inirio y un final')
 
   trans_table[0].unshift('')
 
