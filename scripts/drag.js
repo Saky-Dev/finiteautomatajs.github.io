@@ -1,32 +1,39 @@
+/* Function to remove a single svg link from box drag container 
+ * first get the key from selected, and then get the states linked
+ * so from the first state get all transitions that link both states
+ * and for each link is removed from states object and svg link
+ * from GUI */
 const handleRemoveLink = e => {
-  const linked = e.target.getAttribute('key').split('[link]')
+  const svg_key = e.target.getAttribute('key')
+  const linked = svg_key.split('[link]')
+  const transitions = Object.entries(states[linked[0]].transitions).filter(([, transition]) => transition.has(linked[1]))
 
-  Object.keys(states[linked[0]].transitions).forEach(trans => {
-    if (states[linked[0]].transitions[trans].has(linked[1]))
-      states[linked[0]].transitions[trans].size === 1
-      ? delete states[linked[0]].transitions[trans]
-      : states[linked[0]].transitions[trans].delete(linked[1])
-  })
+  transitions.forEach(([id, transition]) =>
+    transition.size === 1 ? delete states[linked[0]].transitions[id] : transition.delete(linked[1])
+  )
 
-  box_drag.removeChild(document.querySelector(`span.pointer[key='ptr_${e.target.getAttribute('key')}']`))
+  box_drag.removeChild(document.querySelector(`span.pointer[key='ptr_${svg_key}']`))
   box_drag.removeChild(e.target)
 }
 
+/* This function get all keys that link two states using
+ * the object entriies that get the key of the entry and
+ * the object itself */
 const getTransitions = () => {
   const init_state = link.starting.getAttribute('key')
   const final_state = link.ending.getAttribute('key')
 
   let transitions = []
 
-  Object.keys(states[init_state].transitions).forEach(key => {
-    if (states[init_state].transitions[key].has(final_state))
-      transitions.push(key)
+  Object.entries(states[init_state].transitions).forEach(([id, transition]) => {
+    if (transition.has(final_state))
+      transitions.push(id)
   })
 
   return transitions
 }
-/* This functino do calculations with the measures of linked states
- * first get the position at center of state, then width alll the
+/* This function do calculations with the measures of linked states
+ * first get the position at center of state, then with all the
  * positions calc the measures of svg element that connect the states
  * and finally get if the direcction of link in vertical and horiizontal */
 const statesVisualData = () => {
@@ -50,10 +57,9 @@ const statesVisualData = () => {
 }
 /* This function make a link between two states that have
  * all coodinates in defferent places, first get vector and direction
- * from visual data, instanec a svg and a path and calculate the
- * displacement to can see the arrow, then calculate the path position
- * with the displacement, add the measures to svg element and finally
- * add the path into svg and svg to drag area */
+ * from visual data, then get the information of link and if it's the
+ * second link, then calculate the displacement to can see the arrow
+ * and finally the path position is calculated with all the information */
 const drawDiagonalPath = (svg, path, text, reverse_key) => {
   const {position, vector, direction} = statesVisualData()
   const is_second = document.querySelector(`svg.link[key='${reverse_key}']`) ? true : false
@@ -92,9 +98,10 @@ const drawDiagonalPath = (svg, path, text, reverse_key) => {
 }
 /* Here the program can draw a linear line if one of the both coordinates
  * between the two states are the same, so it receives if the states are in
- * linear horizontal or vertical, then add data to svg, and calculate the info
- * to path, add that information and finally add both elements (svg, path )
- * to drag area */
+ * linear horizontal or vertical, then get if it's the second link, and a
+ * measure if it's the second, the data is added to svg, and calculate the info
+ * to path depending of all info, finally if the element is the first all
+ * settings continue else the function finish */
 const drawLinearPath = (side, svg, path, text, reverse_key) => {
   const {position, vector, direction} = statesVisualData()
   const is_second = document.querySelector(`svg.link[key='${reverse_key}']`) ? true : false
@@ -116,8 +123,6 @@ const drawLinearPath = (side, svg, path, text, reverse_key) => {
   svg.style.left = `${side === 'vertical' ? vector.l - 5 : vector.l}px`
   svg.style.width = `${side === 'horizontal' ? vector.w : measure}px`
   svg.style.height = `${side === 'vertical' ? vector.h : measure}px`
-
-  console.log(is_second, reverse_key)
 
   if (is_second) {
     side === 'horizontal'
@@ -141,13 +146,6 @@ const drawLinearPath = (side, svg, path, text, reverse_key) => {
     path.setAttribute('d', `M ${path_data.m} C ${path_data.c.map(point => point)}`)
     return false
   }
-  
-  svg.setAttribute('viewbox', `0 0 ${side === 'horizontal' ? vector.w : '10'} ${side === 'vertical' ? vector.h : '10'}`)
-
-  svg.style.top = `${side === 'horizontal' ? vector.t - 5 : vector.t}px`
-  svg.style.left = `${side === 'vertical' ? vector.l - 5 : vector.l}px`
-  svg.style.width = `${side === 'horizontal' ? vector.w : '10'}px`
-  svg.style.height = `${side === 'vertical' ? vector.h : '10'}px`
   
   side === 'horizontal'
   ? path_data = {
@@ -190,8 +188,10 @@ const stateTools = {
    * that both state are selected, then get the postiion of both
    * and get the neme by the user through a promt, if the name is
    * larger than one the question is do it again, if the name is empy
-   * or spae that is changed to lambda, then the program draw the link
-   * and finally the link is added to states object and the link is clean */
+   * or spae that is changed to lambda, then the link is added to states
+   * object, finally the program draw the link with an anonymous function 
+   *  and the link is clean, if its a redrawing the name is omitted and
+   * nothing is added to states object */
   'handleLink': (e, pre_name, is_redraw) => {
     if (!link.starting)
       return link.starting = e.target
@@ -260,18 +260,22 @@ const stateTools = {
 
     link = {starting: undefined, ending: undefined}
   },
-  /* Function to remove an state first of the states' object
-   * and then fron thw UI */
+  /* Function to remove an state, first of the states' object
+   * and then fron thw GUI, first get the key of element to remove
+   * and then get all svg links that has a link with it, and then
+   * for each element in states object that is connected with the
+   * state selected is removed, then the selected state and finally
+   * from GUI the links are removed */
   'handleRemove': e => {
     const toRemove = e.target.getAttribute('key')
     const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').includes(toRemove))
 
-    Object.keys(states).forEach(id => {
-      Object.keys(states[id].transitions).forEach(trans => {
-        if (states[id].transitions[trans].has(toRemove))
-          states[id].transitions[trans].size === 1
-          ? delete states[id].transitions[trans]
-          : states[id].transitions[trans].delete(toRemove)
+    Object.entries(states).forEach(([state_id, state]) => {
+      Object.entries(state.transitions).forEach(([transition_id, transition]) => {
+        if (transition.has(toRemove))
+          transition.size === 1
+          ? delete states[state_id].transitions[transition_id]
+          : transition.delete(toRemove)
       })
     })
 
@@ -283,7 +287,9 @@ const stateTools = {
       box_drag.removeChild(link)
     })
   },
-  /* Visual to do a visual change when state is moving */
+  /* Here when a state is changed of positino
+   * all visual svg links are removed from GUI
+   * and a visual change when state is moving */
   'handleDragstart': e => {
     const toRemove = e.target.getAttribute('key')
     const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').includes(toRemove))
@@ -295,9 +301,11 @@ const stateTools = {
       box_drag.removeChild(link)
     })
   },
-  /* On this first check if the move is inside the drag area
-   * and if its true the visual effect is removed and the
-   * state is moved to the position */
+  /* On this first get the key from selected state,then check
+   * if the move is inside the drag area and if its true the
+   * visual effect is removed and the state is moved to the
+   * position, finally all links are redrawing inside drag
+   * area with the function to link states */
   'handleDragend': e => {
     const selected = e.target.getAttribute('key')
     const on_position = {
@@ -312,22 +320,22 @@ const stateTools = {
       e.target.style.top = `${e.y - 30}px`
     }
 
-    Object.keys(states[selected].transitions).forEach(trans => {
-      states[selected].transitions[trans].forEach(res => {
+    Object.entries(states[selected].transitions).forEach(([id, transition]) => {
+      transition.forEach(res => {
         link.starting = document.querySelector(`button.state[key='${selected}']`)
         link.ending = document.querySelector(`button.state[key='${res}']`)
 
-        stateTools.handleLink(link.ending, trans, true)
+        stateTools.handleLink(link.ending, id, true)
       })
     })
 
-    Object.keys(states).forEach(id => {
-      Object.keys(states[id].transitions).forEach(trans => {
-        if (id !== selected && states[id].transitions[trans].has(selected)) {
-          link.starting = document.querySelector(`button.state[key='${id}']`)
+    Object.entries(states).forEach(([state_id, state]) => {
+      Object.entries(state.transitions).forEach(([transition_id, transition]) => {
+        if (state_id !== selected && transition.has(selected)) {
+          link.starting = document.querySelector(`button.state[key='${state_id}']`)
           link.ending = document.querySelector(`button.state[key='${selected}']`)
 
-          stateTools.handleLink(link.ending, trans, true)
+          stateTools.handleLink(link.ending, transition_id, true)
         }
       })
     })
