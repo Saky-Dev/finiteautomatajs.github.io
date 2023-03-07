@@ -1,3 +1,17 @@
+const handleRemoveLink = e => {
+  const linked = e.target.getAttribute('key').split('[link]')
+
+  Object.keys(states[linked[0]].transitions).forEach(trans => {
+    if (states[linked[0]].transitions[trans].has(linked[1]))
+      states[linked[0]].transitions[trans].size === 1
+      ? delete states[linked[0]].transitions[trans]
+      : states[linked[0]].transitions[trans].delete(linked[1])
+  })
+
+  box_drag.removeChild(document.querySelector(`span.pointer[key='ptr_${e.target.getAttribute('key')}']`))
+  box_drag.removeChild(e.target)
+}
+
 const getTransitions = () => {
   const init_state = link.starting.getAttribute('key')
   const final_state = link.ending.getAttribute('key')
@@ -40,19 +54,26 @@ const statesVisualData = () => {
  * displacement to can see the arrow, then calculate the path position
  * with the displacement, add the measures to svg element and finally
  * add the path into svg and svg to drag area */
-const drawDiagonalPath = (svg, path, text) => {
+const drawDiagonalPath = (svg, path, text, reverse_key) => {
   const {position, vector, direction} = statesVisualData()
+  const is_second = document.querySelector(`svg.link[key='${reverse_key}']`) ? true : false
 
   const displacement = 100 * 30 / (vector.h > vector.w ? vector.h : vector.w)
   const move = {
     w: Math.round((vector.w * displacement / 100)),
     h: Math.round((vector.h * displacement / 100))
   }
-  const path_data = {
+  let path_data = {}
+
+  path_data = {
     m: `${direction.h === 'right' ? move.w : vector.w - move.w} ${direction.v === 'down' ? move.h : vector.h - move.h}`,
     c: [
-      `${direction.h === 'right' ? move.w : vector.w - move.w} ${direction.v === 'down' ? move.h : vector.h - move.h}`,
-      `${direction.h === 'right' ? vector.w - move.w : move.w} ${direction.v === 'down' ? vector.h - move.h : move.h}`,
+      is_second
+      ? `${vector.w / 2} ${direction.v === 'down' ? '0' : vector.h}`
+      : `${direction.h === 'right' ? move.w : vector.w - move.w} ${direction.v === 'down' ? move.h : vector.h - move.h}`,
+      is_second
+      ? `${direction.h === 'right' ? vector.w : 0} ${vector.h / 2}`
+      : `${direction.h === 'right' ? vector.w - move.w : move.w} ${direction.v === 'down' ? vector.h - move.h : move.h}`,
       `${direction.h === 'right' ? vector.w - move.w : move.w} ${direction.v === 'down' ? vector.h - move.h : move.h}`
     ]
   }
@@ -76,7 +97,7 @@ const drawDiagonalPath = (svg, path, text) => {
  * to drag area */
 const drawLinearPath = (side, svg, path, text, reverse_key) => {
   const {position, vector, direction} = statesVisualData()
-  const is_second = document.querySelector(`svg.link[key='${reverse_key}']`) ? true : false 
+  const is_second = document.querySelector(`svg.link[key='${reverse_key}']`) ? true : false
   const measure = is_second ? 40 : 10
 
   let path_data = undefined
@@ -214,6 +235,7 @@ const stateTools = {
 
       svg.classList.add('link')
       svg.setAttribute('key', svg_key)
+      svg.addEventListener('click', handleRemoveLink)
 
       text.className = 'pointer'
       text.innerHTML = `${getTransitions().map(tr => tr)}`
@@ -230,7 +252,7 @@ const stateTools = {
       if (position.sty === position.edy)
         return drawLinearPath('horizontal', svg, path, text, reverse_key)
       
-      drawDiagonalPath(svg, path, text)
+      drawDiagonalPath(svg, path, text, reverse_key)
     })()
 
     link = {starting: undefined, ending: undefined}
@@ -238,8 +260,27 @@ const stateTools = {
   /* Function to remove an state first of the states' object
    * and then fron thw UI */
   'handleRemove': e => {
-    delete states[e.target.getAttribute('key')]
+    const toRemove = e.target.getAttribute('key')
+    let links = document.querySelectorAll('svg.link')
+
+    links = [...links].filter(svg => svg.getAttribute('key').includes(toRemove))
+
+    Object.keys(states).forEach(id => {
+      Object.keys(states[id].transitions).forEach(trans => {
+        if (states[id].transitions[trans].has(toRemove))
+          states[id].transitions[trans].size === 1
+          ? delete states[id].transitions[trans]
+          : states[id].transitions[trans].delete(toRemove)
+      })
+    })
+
+    delete states[toRemove]
+
     box_drag.removeChild(e.target)
+    links.forEach(link => {
+      box_drag.removeChild(document.querySelector(`span.pointer[key='ptr_${link.getAttribute('key')}']`))
+      box_drag.removeChild(link)
+    })
   },
   /* Visual to do a visual change when state is moving */
   'handleDragstart': e => e.target.style.opacity = '0.4',

@@ -22,6 +22,13 @@ const handleDataAdd = () => {
 /* Function remove all children elements inside box_data */
 const handleDataClear = () => [...box_data.children].forEach(child => box_data.removeChild(child))
 
+/* Function to get Transition table from states object
+ * at first we get all the transitions without repeat the
+ * elements and then they are add to trans_table like an
+ * arry, the we add to anonymous array the state name and
+ * each transition result, finally for each element inside
+ * the matrix is created a div element that works like a row
+ * and a span that works like a column */
 const handleTransTable = () => {
   let states_ids = Object.keys(states)
   let trans_table = []
@@ -48,8 +55,6 @@ const handleTransTable = () => {
   })
 
   trans_table[0].unshift('')
-  
-  console.table(trans_table)
 
   trans_table.forEach((row, ri) => {
     const tt_row = document.createElement('div')
@@ -69,6 +74,9 @@ const handleTransTable = () => {
   
   box_hidden_window.className = 'hidden_window visible'
 }
+
+/* This function close the hidden window element and remove all children inside
+ * the transition table container */
 const handleCloseWindow = () => {
   box_hidden_window.className = 'hidden_window hidden'
 
