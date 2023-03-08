@@ -25,47 +25,32 @@ const handleDataClear = () => [...box_data.children].forEach(child => box_data.r
 /* Function to get Transition table from states object
  * at first we get all the transitions without repeat the
  * elements and then they are add to trans_table like an
- * arry, the we add to anonymous array the state name and
+ * arry, then push an array with the state name and
  * each transition result, finally for each element inside
  * the matrix is created a div element that works like a row
- * and a span that works like a column */
+ * and an span that works like a column */
 const handleTransTable = () => {
   const hasInitial = Object.values(states).findIndex(state => state.isInitial) < 0 ? false : true
   const hasFinal = Object.values(states).findIndex(state => state.isFinal) < 0 ? false : true
-  const states_ids = Object.keys(states)
+  const transitions = new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
 
-  let trans_table = []
-  let transitions = new Set()
+  let transition_table = [[...transitions]]
 
-  states_ids.forEach(id => {
-    Object.keys(states[id].transitions).forEach(trans => transitions.add(trans))
+  Object.entries(states).forEach(([state_id, state]) => {
+    transition_table.push([state_id].concat(
+      [...transitions].map(id => state.transitions[id] ? `${[...state.transitions[id]].map(res => res)}` : '')
+    ))
   })
-
-  trans_table.push([...transitions])
-
-  states_ids.forEach(id => {
-    let anonymous = []
-    anonymous.push(id)
-
-    transitions.forEach(trans => anonymous.push(
-        states[id].transitions[trans]
-        ? `${[...states[id].transitions[trans]].map(res => res)}`
-        : ''
-      )
-    )
-
-    trans_table.push(anonymous)
-  })
-
-  if (trans_table[0].length < 1)
-    return alert('Debes de tener minimo dos estados y una transición')
 
   if (!hasInitial || !hasFinal)
     return alert('Debes definir un inirio y un final')
 
-  trans_table[0].unshift('')
+  if (transition_table[0].length < 1)
+    return alert('Debes de tener minimo dos estados y una transición')
 
-  trans_table.forEach((row, ri) => {
+  transition_table[0].unshift('')
+
+  transition_table.forEach((row, ri) => {
     const tt_row = document.createElement('div')
     tt_row.className = 'tt_row'
 
@@ -78,24 +63,24 @@ const handleTransTable = () => {
       tt_row.appendChild(tt_column)
     })
 
-    box_trans_table.appendChild(tt_row)
+    box_transition_table.appendChild(tt_row)
   })
   
   box_hidden_window.className = 'hidden_window visible'
 }
 
-/* This function close the hidden window element and remove all children inside
- * the transition table container */
+/* This function close the hidden window element and remove
+ * all children inside the transition table container */
 const handleCloseWindow = () => {
   box_hidden_window.className = 'hidden_window hidden'
 
-  ;[...box_trans_table.children].forEach(child => box_trans_table.removeChild(child))
+  ;[...box_transition_table.children].forEach(child => box_transition_table.removeChild(child))
 }
 
 /* DOM elements */
 const box_data = document.querySelector('main div.input_data div.data')
 const box_hidden_window = document.querySelector('main div.hidden_window')
-const box_trans_table = document.querySelector('main div.hidden_window div.trans_table')
+const box_transition_table = document.querySelector('main div.hidden_window div.transition_table')
 
 /* Action buttons */
 document.querySelector('button#data_add').addEventListener('click', handleDataAdd)

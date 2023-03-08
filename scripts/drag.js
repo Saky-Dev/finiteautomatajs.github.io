@@ -385,6 +385,7 @@ const handleAdd = e => {
 
   node.setAttribute('key', name || `Q${state_num++}`)
   node.innerText = node.getAttribute('key')
+  
   node.addEventListener('dragstart', evt => action === 'Cursor' ? stateTools['handleDragstart'](evt) : false)
   node.addEventListener('dragend', evt => action === 'Cursor' ? stateTools['handleDragend'](evt) : false)
   node.addEventListener('contextmenu', evt => action === 'Cursor' ? stateTools['handleContextmenu'](evt) : false)
