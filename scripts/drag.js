@@ -389,7 +389,7 @@ const handleAdd = e => {
   node.addEventListener('dragstart', evt => action === 'Cursor' ? stateTools['handleDragstart'](evt) : false)
   node.addEventListener('dragend', evt => action === 'Cursor' ? stateTools['handleDragend'](evt) : false)
   node.addEventListener('contextmenu', evt => action === 'Cursor' ? stateTools['handleContextmenu'](evt) : false)
-  node.addEventListener('click', evt => stateTools[`handle${action}`](evt) ?? false)
+  node.addEventListener('click', evt => stateTools[`handle${action}`] ? stateTools[`handle${action}`](evt) : false)
 
   if (on_position.x && on_position.y) {
     node.style.left = `${e.x - 30}px`
