@@ -1,5 +1,8 @@
 let states = { }
 
+const getAllTransitions = () =>
+  new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
+
 const isDefined = () => {
   if (Object.values(states).filter(state => state.isInitial).length > 1)
     return false
@@ -66,7 +69,9 @@ const definedFindWord = () => {
 }
 
 const transformAutomata = () => {
-  const transitions = new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
+  const transitions = getAllTransitions()
+  const initial = Object.entries(states).find(([,state]) => state.isInitial)
+  const final = Object.entries(states).find(([,state]) => state.isFinal)
   let aux_states = {...states}
   let new_states = []
 
@@ -113,6 +118,18 @@ const transformAutomata = () => {
     })
   })
 
+  aux_states[
+    aux_states[initial[0]]
+    ? initial[0]
+    : Object.keys(aux_states).find(state => state.includes(initial[0]))
+  ].isInitial = true
+
+  aux_states[
+    aux_states[final[0]]
+    ? final[0]
+    : Object.keys(aux_states).find(state => state.includes(final[0]))
+  ].isFinal = true
+
   states = aux_states
 }
 
@@ -124,6 +141,8 @@ document.querySelector('button#afd').addEventListener('click', () => {
     return alert('El automata ya es un finito definido')
   
   transformAutomata()
+
+  ;[...box_drag.children].forEach(child => box_drag.removeChild(child))
 })
 
 document.querySelector('button#data_analyze').addEventListener('click', () => {

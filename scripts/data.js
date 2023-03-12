@@ -28,9 +28,7 @@ const handleDataClear = () => [...box_data.children].forEach(child => box_data.r
  * arry, then push an array with the state name and
  * each transition result, and finally the table is returned */
 const getTransitionTable = () => {
-  let transition_table = [[
-    ...new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
-  ]]
+  let transition_table = [[...getAllTransitions()]]
 
   Object.entries(states).forEach(([state_id, state]) => {
     transition_table.push([state_id].concat(
