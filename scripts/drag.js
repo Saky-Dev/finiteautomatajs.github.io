@@ -371,7 +371,7 @@ const stateTools = {
  * finally if all its alright the node is added to drag area and into states */
 const handleAdd = (e, prename, redraw) => {
   const node = document.createElement('button')
-  const name = prename ?? prompt('Nombre del estado:')
+  const name = prename ?? prompt('Nombre del estado:').trim().replace(',', '')
   const on_position = {
     'x': draggable.min_x < e.x - 30 && e.x + 30 < draggable.max_x,
     'y': draggable.min_y < e.y - 30 && e.y + 30 < draggable.max_y
