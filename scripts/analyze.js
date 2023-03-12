@@ -1,9 +1,14 @@
 let wasConverted = false
 let states = { }
 
+/* Function to extract all transitions without repeat
+ * from actual states */
 const getAllTransitions = () =>
   new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
 
+/* Function to check if the sutomata is defined, so check if the
+ * automata have only one start, one final and if the transitions
+ * only have a result per transition */
 const isDefined = () => {
   if (Object.values(states).filter(state => state.isInitial).length > 1)
     return false
@@ -19,6 +24,9 @@ const isDefined = () => {
   return true
 }
 
+/* Here heck if the estructure created is an automata or not
+ * to defined this, is checked if there are two states, one
+ * transition and that have an initial and a final */
 const isAnAutomata = () => {
   const transitions = [].concat(...Object.values(states).map(state => Object.keys(state.transitions)))
   const hasInitial = Object.values(states).findIndex(state => state.isInitial) < 0 ? false : true
@@ -35,6 +43,11 @@ const isAnAutomata = () => {
 
   return true
 }
+
+/* This is a special function to know if the automata can be
+ * analized and check if words are included in the estructure
+ * it use the checking if is an automata and check that the user
+ * has been added a word */
 const canAnalyze = () => {
   if (!isAnAutomata())
     return false
@@ -45,6 +58,13 @@ const canAnalyze = () => {
   return true
 }
 
+/* Function to check if a word is included into a automata undefined
+ * and it use the recursion and an stack, to save the diferent ways,
+ * firts the function checks if the next transition exist and if not
+ * try other way or returns false, next check change the selected
+ * state and if there are more than one way, if saved on the stack
+ * finally if is the last state and it's not the final check if there
+ * are saved ways or returns false */
 const undefinedFindWord = (letters, stack, [selected, position]) => {
   let lettering = [...letters]
 
@@ -67,6 +87,9 @@ const undefinedFindWord = (letters, stack, [selected, position]) => {
   return states[selected].isFinal
 }
 
+/* Function to check if word is included into defined automata
+ * this only check if there is a selected state and this have
+ * the next step of way, if not the function returns false */
 const definedFindWord = (letters, initial) => {
   let selected = initial
 
@@ -82,6 +105,15 @@ const definedFindWord = (letters, initial) => {
   return selected ? states[selected].isFinal : false
 }
 
+/* Function to transform a undefined automata to defined, first get all
+ * transitions, get the actual start and final and do a copy of actual
+ * states, then we search all empty transitions and combine them
+ * the next step is join all transitions that ends in two or more states
+ * then sort all transitions, delete the empy transition of the transitions
+ * object, initialize the aux_states, then with the new states and the
+ * transitions translate the old states to the new states and assign the
+ * respective transitions, finally assign the new start and final and
+ * replace the old states to the new */
 const transformAutomata = () => {
   const transitions = getAllTransitions()
   const initial = Object.entries(states).find(([,state]) => state.isInitial)
@@ -147,16 +179,22 @@ const transformAutomata = () => {
   states = aux_states
 }
 
-document.querySelector('button#clear').addEventListener('click', () => {
+/* Function to clear the drag area, remove the states
+ * the links and the pointers and set the conversion as
+ * false */
+const handleClear = () => {
   wasConverted = false
 
   states = {}
 
   ;[...document.querySelectorAll('button.state, svg.link, span.pointer')]
   .forEach(child => box_drag.removeChild(child))
-})
+}
 
-document.querySelector('button#afd').addEventListener('click', () => {
+/* Function that change the AFND to AFD, first check that didn't have
+ * a conversion before, then is is an automa or it's defined, then do
+ * the internal conversion and finally draw the new automata */
+const handleAFD = () => {
   if (wasConverted)
     return alert('Se ha detectado una conversión previa, usa el boton de limpiar para reiniciar el conversor')
 
@@ -198,9 +236,13 @@ document.querySelector('button#afd').addEventListener('click', () => {
   })
 
   wasConverted = true
-})
+}
 
-document.querySelector('button#data_analyze').addEventListener('click', () => {
+/* Function to check if a word belongs to an automata
+ * it search all starts and the words, and use the
+ * other functions to find the word that depends if the
+ * automata is defined or undefined and show the result */
+const handleDataAnalyze = () => {
   if (!canAnalyze())
     return false
 
@@ -223,9 +265,12 @@ document.querySelector('button#data_analyze').addEventListener('click', () => {
           break
       }
 
-    console.log(belongs)
-
     result.innerHTML = belongs
     belongs ? result.classList.remove('false') : result.classList.add('false')
   })
-})
+}
+
+/* Action buttons */
+document.querySelector('button#clear').addEventListener('click', handleClear)
+document.querySelector('button#afd').addEventListener('click', handleAFD)
+document.querySelector('button#data_analyze').addEventListener('click', handleDataAnalyze)
