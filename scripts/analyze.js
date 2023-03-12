@@ -36,11 +36,13 @@ const isAnAutomata = () => {
   return true
 }
 const canAnalyze = () => {
-  if (!isAnAutomata)
+  if (!isAnAutomata())
     return false
     
   if (document.querySelector('div.input_data div.data').children.length < 1)
     return alert('Necesitas agregar minimo una palabra')
+
+  return true
 }
 
 const undefinedFindWord = (letters, stack, [selected, position]) => {
@@ -50,7 +52,7 @@ const undefinedFindWord = (letters, stack, [selected, position]) => {
 
   for (const [index, single] of lettering.entries()) {
     if (!states[selected].transitions[single])
-      return stack.length > 0 ? emptyStack(stack.pop()) : false
+      return stack.length > 0 ? undefinedFindWord(letters, stack, stack.pop()) : false
 
     let transitions = [...states[selected].transitions[single]]
     
@@ -59,14 +61,25 @@ const undefinedFindWord = (letters, stack, [selected, position]) => {
     : selected = transitions[0]
 
     if(index === lettering.length - 1 && !states[selected].isFinal)
-      return stack.length > 0 ? emptyStack(stack.pop()) : false
+      return stack.length > 0 ? undefinedFindWord(letters, stack, stack.pop()) : false
   }
 
   return states[selected].isFinal
 }
 
-const definedFindWord = () => {
+const definedFindWord = (letters, initial) => {
+  let selected = initial
 
+  for (const letter of letters) {
+    if (selected && states[selected].transitions[letter])
+      selected = [...states[selected].transitions[letter]][0]
+    else {
+      selected = false
+      break
+    }
+  }
+
+  return selected ? states[selected].isFinal : false
 }
 
 const transformAutomata = () => {
@@ -192,7 +205,7 @@ document.querySelector('button#data_analyze').addEventListener('click', () => {
     return false
 
   const words = [...document.querySelectorAll('input.word[type="text"]')]
-  const beginning = Object.entries(states).filter(([, state]) => state.isInitial).map(([id]) => id)
+  const beginning = Object.entries(states).filter(([, state]) => state.isInitial).map(([id,]) => id)
 
   let belongs = false
 
@@ -200,12 +213,17 @@ document.querySelector('button#data_analyze').addEventListener('click', () => {
     const result = word.parentElement.querySelector('span.result')
     const letters = word.value.replace(' ', 'λ').split('')
 
-    for (const initial of beginning) {
-      belongs = undefinedFindWord(letters, [], [initial, 0])
+    if (isDefined())
+      belongs = definedFindWord(letters, beginning[0])
+    else
+      for (const initial of beginning) {
+        belongs = undefinedFindWord(letters, [], [initial, 0])
 
-      if (belongs)
-        break
-    }
+        if (belongs)
+          break
+      }
+
+    console.log(belongs)
 
     result.innerHTML = belongs
     belongs ? result.classList.remove('false') : result.classList.add('false')
