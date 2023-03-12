@@ -1,3 +1,4 @@
+let wasConverted = false
 let states = { }
 
 const getAllTransitions = () =>
@@ -133,7 +134,19 @@ const transformAutomata = () => {
   states = aux_states
 }
 
+document.querySelector('button#clear').addEventListener('click', () => {
+  wasConverted = false
+
+  states = {}
+
+  ;[...document.querySelectorAll('button.state, svg.link, span.pointer')]
+  .forEach(child => box_drag.removeChild(child))
+})
+
 document.querySelector('button#afd').addEventListener('click', () => {
+  if (wasConverted)
+    return alert('Se ha detectado una conversión previa, usa el boton de limpiar para reiniciar el conversor')
+
   let move = draggable.min_x + 100
 
   if (!isAnAutomata())
@@ -170,6 +183,8 @@ document.querySelector('button#afd').addEventListener('click', () => {
       stateTools.handleLink(link.ending, state_id, true)
     })
   })
+
+  wasConverted = true
 })
 
 document.querySelector('button#data_analyze').addEventListener('click', () => {
