@@ -1,32 +1,42 @@
 let states = { }
 
-const validations = () => {
-  let hasTransitions = false
-  let hasStart = false
-  let hasFinal = false
+const isDefined = () => {
+  if (Object.values(states).filter(state => state.isInitial).length > 1)
+    return false
 
-  if (document.querySelector('div.input_data div.data').children.length < 1)
-    return alert('Necesitas agregar minimo una palabra')
+  if (Object.values(states).filter(state => state.isFinal).length > 1)
+    return false
+
+  for (const state of Object.values(states)) {
+    if (Object.values(state.transitions).findIndex(transition => transition.size > 1) > -1)
+      return false
+  }
+
+  return true
+}
+
+const isAnAutomata = () => {
+  const transitions = [].concat(...Object.values(states).map(state => Object.keys(state.transitions)))
+  const hasInitial = Object.values(states).findIndex(state => state.isInitial) < 0 ? false : true
+  const hasFinal = Object.values(states).findIndex(state => state.isFinal) < 0 ? false : true
   
   if (Object.keys(states).length < 2)
     return alert('Debes tener al menos 2 states en el area')
 
-  Object.values(states).forEach(state => Object.keys(state.transitions).length > 0 ? hasTransitions = true : false)
-
-  if (!hasTransitions)
+  if (transitions.length < 1)
     return alert('Debes de tener al menos una transición')
 
-  Object.values(states).forEach(state => {
-    if (state.isInitial)
-      hasStart = true
-    if (state.isFinal)
-      hasFinal = true
-  })
-
-  if (!hasStart || !hasFinal)
+  if (!hasInitial || !hasFinal)
     return alert('Debes de definir un estado inicial y un final')
 
   return true
+}
+const canAnalyze = () => {
+  if (!isAnAutomata)
+    return false
+    
+  if (document.querySelector('div.input_data div.data').children.length < 1)
+    return alert('Necesitas agregar minimo una palabra')
 }
 
 const undefinedFindWord = (letters, stack, [selected, position]) => {
@@ -55,8 +65,69 @@ const definedFindWord = () => {
 
 }
 
+const transformAutomata = () => {
+  const transitions = new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
+  let aux_states = {...states}
+  let new_states = []
+
+  Object.entries(aux_states).forEach(([state_id, state]) => {
+    const hasEmpty = Object.keys(state.transitions).findIndex(transition => transition === 'λ')
+
+    if (hasEmpty > -1)
+      (new_states = [...new_states].concat(`${state_id},${[...state.transitions['λ']].join()}`),
+      delete aux_states[state_id].transitions['λ'])
+  })
+
+
+  Object.values(aux_states).forEach(state => {
+    new_states = [...new_states].concat(Object.values(state.transitions).map(transition => [...transition].join()))
+  })
+
+  new_states = [...new Set(new_states)]
+  .sort((state_a, state_b) => state_a.split(',').length - state_b.split(',').length)
+  .reverse()
+
+  if (transitions.has('λ'))
+    transitions.delete('λ')
+
+  aux_states = {}
+
+  new_states.forEach(state => {
+    aux_states[state] = { 'transitions': {}, 'isInitial': false, 'isFinal': false }
+
+    transitions.forEach(transition => {
+      const old_result = states[state] ? states[state].transitions[transition] : false
+      let new_result = ''
+
+      if (state.split(',').length < 2 && !old_result)
+        return false
+
+      new_result = state.split(',').length < 2
+      ? [...old_result].join()
+      : `${state.split(',')
+        .filter(old_state => states[old_state].transitions[transition])
+        .map(old_state => [...states[old_state].transitions[transition]].join())}`
+
+      if (new_result !== '')
+        aux_states[state].transitions[transition] = new Set([new_result])
+    })
+  })
+
+  states = aux_states
+}
+
+document.querySelector('button#afd').addEventListener('click', () => {
+  if (!isAnAutomata())
+    return false
+  
+  if (isDefined())
+    return alert('El automata ya es un finito definido')
+  
+  transformAutomata()
+})
+
 document.querySelector('button#data_analyze').addEventListener('click', () => {
-  if (!validations())
+  if (!canAnalyze())
     return false
 
   const words = [...document.querySelectorAll('input.word[type="text"]')]

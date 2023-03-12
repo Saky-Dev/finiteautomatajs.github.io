@@ -26,29 +26,33 @@ const handleDataClear = () => [...box_data.children].forEach(child => box_data.r
  * at first we get all the transitions without repeat the
  * elements and then they are add to trans_table like an
  * arry, then push an array with the state name and
- * each transition result, finally for each element inside
- * the matrix is created a div element that works like a row
- * and an span that works like a column */
-const handleTransTable = () => {
-  const hasInitial = Object.values(states).findIndex(state => state.isInitial) < 0 ? false : true
-  const hasFinal = Object.values(states).findIndex(state => state.isFinal) < 0 ? false : true
-  const transitions = new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
-
-  let transition_table = [[...transitions]]
+ * each transition result, and finally the table is returned */
+const getTransitionTable = () => {
+  let transition_table = [[
+    ...new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
+  ]]
 
   Object.entries(states).forEach(([state_id, state]) => {
     transition_table.push([state_id].concat(
-      [...transitions].map(id => state.transitions[id] ? `${[...state.transitions[id]].map(res => res)}` : '')
+      transition_table[0].map(id => state.transitions[id] ? `${[...state.transitions[id]].join()}` : '')
     ))
   })
 
-  if (!hasInitial || !hasFinal)
-    return alert('Debes definir un inirio y un final')
-
-  if (transition_table[0].length < 1)
-    return alert('Debes de tener minimo dos estados y una transición')
-
   transition_table[0].unshift('')
+
+  return transition_table
+}
+
+/* Here the function create the graphic UI
+ * of the transition table inside hidden window
+ * for each element inside the matrix is created
+ * a div element that works like a row
+ * and an span that works like a column */
+const handleTransTable = () => {
+  if (!isAnAutomata())
+    return false
+
+  const transition_table = getTransitionTable()
 
   transition_table.forEach((row, ri) => {
     const tt_row = document.createElement('div')
