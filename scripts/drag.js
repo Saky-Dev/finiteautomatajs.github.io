@@ -369,9 +369,9 @@ const stateTools = {
  * state is requested to user, if the name is empty there are a preconfigured name,
  * the button is linked with its fucntions, then its position is asigned and
  * finally if all its alright the node is added to drag area and into states */
-const handleAdd = e => {
+const handleAdd = (e, prename, redraw) => {
   const node = document.createElement('button')
-  const name = prompt('Nombre del estado:')
+  const name = prename ?? prompt('Nombre del estado:')
   const on_position = {
     'x': draggable.min_x < e.x - 30 && e.x + 30 < draggable.max_x,
     'y': draggable.min_y < e.y - 30 && e.y + 30 < draggable.max_y
@@ -395,6 +395,11 @@ const handleAdd = e => {
     node.style.left = `${e.x - 30}px`
     node.style.top = `${e.y - 30}px`
     positioned = true
+  }
+
+  if(redraw) {
+    box_drag.appendChild(node)
+    return false
   }
 
   if (states[node.getAttribute('key')] || !positioned)

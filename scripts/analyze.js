@@ -134,6 +134,8 @@ const transformAutomata = () => {
 }
 
 document.querySelector('button#afd').addEventListener('click', () => {
+  let move = draggable.min_x + 100
+
   if (!isAnAutomata())
     return false
   
@@ -142,7 +144,32 @@ document.querySelector('button#afd').addEventListener('click', () => {
   
   transformAutomata()
 
-  ;[...box_drag.children].forEach(child => box_drag.removeChild(child))
+  ;[...document.querySelectorAll('button.state, svg.link, span.pointer')]
+  .forEach(child => box_drag.removeChild(child))
+
+  Object.keys(states).forEach((id, index) => {
+    handleAdd({
+      x: move,
+      y: index % 2 === 0 ? draggable.max_y - 100 : draggable.min_y + 100
+    }, id, true)
+    move += index % 2 === 0 ? 200 : 0
+  })
+
+
+  document.querySelector(`button.state[key='${Object.entries(states).find(([,state]) => state.isInitial)[0]}']`)
+  .classList.add('initial')
+
+  document.querySelector(`button.state[key='${Object.entries(states).find(([,state]) => state.isFinal)[0]}']`)
+  .classList.add('final')
+
+  Object.entries(states).forEach(([state_id, state]) => {
+    Object.values(state.transitions).forEach(transition =>  {
+      link.starting = document.querySelector(`button.state[key='${state_id}']`)
+      link.ending = document.querySelector(`button.state[key='${[...transition][0]}']`)
+
+      stateTools.handleLink(link.ending, state_id, true)
+    })
+  })
 })
 
 document.querySelector('button#data_analyze').addEventListener('click', () => {
