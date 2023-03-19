@@ -1,3 +1,4 @@
+let thereIsNewState = false
 let wasConverted = false
 let states = { }
 
@@ -115,6 +116,9 @@ const definedFindWord = (letters, initial) => {
  * respective transitions, finally assign the new start and final and
  * replace the old states to the new */
 const transformAutomata = () => {
+  DFA()
+  return
+
   const transitions = getAllTransitions()
   const initial = Object.entries(states).find(([,state]) => state.isInitial)
   const final = Object.entries(states).find(([,state]) => state.isFinal)
@@ -178,6 +182,108 @@ const transformAutomata = () => {
 
   states = aux_states
 }
+const fillTransitions = id => {
+  let transitions = {}
+
+  id.split(',').forEach(state => {
+    Object.entries({...states[state].transitions}).forEach(([transition_id, transition]) => {
+      transitions[transition_id] = !transitions[transition_id]
+      ? transition
+      : new Set([...transitions[transition_id]].concat([...transition]))
+    })
+  })
+
+  if (transitions['λ'])
+    delete transitions['λ']
+
+  Object.entries(transitions).forEach(([transition_id, transition]) => {
+    if (transition.size > 1)
+      transitions[transition_id] = new Set([[...transitions[transition_id]].join()])
+  })
+  
+  return transitions
+}
+const addStates = (new_states, id) => {
+  console.log(id)
+
+  new_states[id] = {
+    isInitial: false,
+    isFinal: false,
+    transitions: fillTransitions(id)
+  }
+
+  Object.values(new_states[id].transitions).forEach(transition => {
+    let new_id = [...transition][0]
+    
+    console.log(new_id.includes(','))
+
+    if (new_id.includes(','))
+      thereIsNewState = true
+
+    if (!new_states[new_id])
+      addStates(new_states, new_id)
+  })
+}
+const DFA = () => {
+  const transitions = getAllTransitions()
+  const initial = Object.entries(states).find(([,state]) => state.isInitial)
+  const final = Object.entries(states).filter(([,state]) => state.isFinal)
+
+  let aux_states = JSON.parse(JSON.stringify(states))
+  let rename_table = []
+  let new_states = {}
+
+  Object.keys(aux_states).forEach(id => aux_states[id].transitions = {...states[id].transitions})
+
+  thereIsNewState = false
+
+  if ([...transitions].indexOf('λ') > -1)
+    Object.entries(aux_states)
+    .filter(([, state]) => state.transitions['λ'])
+    .forEach(([state_id, state]) => {
+      if (!thereIsNewState)
+        addStates(new_states, `${[...new Set([state_id,...state.transitions['λ']])].join()}`)
+    })
+
+  console.log(Object.keys(new_states).length)
+
+  if (Object.keys(new_states).length < 1)
+    Object.keys(aux_states).forEach(id => {
+      console.log(`has: ${thereIsNewState}`)
+
+      if (!thereIsNewState)
+        addStates(new_states, id)
+    })
+
+  new_states[
+    new_states[initial[0]]
+    ? initial[0]
+    : Object.keys(new_states).find(state => state.includes(initial[0]))
+  ].isInitial = true
+
+  final.forEach(([final_id,]) => {
+    Object.entries(new_states).filter(([state_id,]) => state_id.includes(final_id)).forEach(([, state]) => state.isFinal = true )
+  })
+
+  Object.keys(new_states).forEach((state, index) => {
+    rename_table.push([state, `Q${index}`])
+  })
+
+  let transform = {}
+
+  Object.entries(new_states).forEach(([state_id, state]) => {
+    const new_name = rename_table.find(ids => ids[0] === state_id)[1]
+    transform[new_name] = {...state}
+
+    Object.entries(transform[new_name].transitions).forEach(([transition_id, transition]) => {
+      transform[new_name].transitions[transition_id] = new Set([rename_table.find(ids => ids[0] === [...transition][0])[1]])
+    })
+  })
+
+  console.log(new_states)
+  console.log(transform)
+  states = transform
+}
 
 /* Function to clear the drag area, remove the states
  * the links and the pointers and set the conversion as
@@ -223,8 +329,9 @@ const handleAFD = () => {
   document.querySelector(`button.state[key='${Object.entries(states).find(([,state]) => state.isInitial)[0]}']`)
   .classList.add('initial')
 
-  document.querySelector(`button.state[key='${Object.entries(states).find(([,state]) => state.isFinal)[0]}']`)
-  .classList.add('final')
+  Object.entries(states)
+  .filter(([,state]) => state.isFinal)
+  .forEach(([state_id,]) => document.querySelector(`button.state[key='${state_id}']`).classList.add('final'))
 
   Object.entries(states).forEach(([state_id, state]) => {
     Object.values(state.transitions).forEach(transition =>  {

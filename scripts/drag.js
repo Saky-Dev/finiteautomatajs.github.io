@@ -220,8 +220,10 @@ const stateTools = {
         transitions[name] = new Set()
       if (!transitions[name].has(final_state))
         transitions[name].add(final_state)
-      else
+      else {
+        link = {starting: undefined, ending: undefined}
         return alert('Esta transición ya existe')
+      }
     }
 
     ;(() => {
@@ -422,8 +424,12 @@ const handleSetStatus = status => {
     return false
 
   const id = ctx_selected_state.getAttribute('key')
+  const pre_init =  box_drag.querySelector('button.state.initial')
 
   if (status === 'initial') {
+    if (pre_init && id !== pre_init.getAttribute('key'))
+      (pre_init.classList.remove('initial'), states[pre_init.getAttribute('key')].isInitial = false)
+
     states[id].isInitial
     ? ctx_selected_state.classList.remove('initial')
     : ctx_selected_state.classList.add('initial')
