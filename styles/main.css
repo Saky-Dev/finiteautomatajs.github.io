@@ -20,38 +20,60 @@ main svg.vector_aux defs marker#vector_arrow {
   stroke: none;
   fill: var(--clr_grey);
 }
-main div.hidden_window {
+main div.hidden_window,
+main div.hidden_saved {
   position: fixed;
-  top: 5vh;
-  left: 25vw;
-  width: 50vw;
-  max-width: 50vw;
-  height: 90vh;
-  max-height: 90vh;
+  top: 4vh;
+  left: 10px;
+  width: calc(100% - 20px);
+  max-width: calc(100% - 20px);
+  height: 92vh;
+  max-height: 92vh;
   border-radius: 10px;
   background: var(--clr_bakcground);
   border-radius: 5;
   outline: 4px solid var(--clr_main_dark);
   z-index: 15;
-  padding: 6vh 3vw;
+  padding: 8vh 3vw;
   transition: 0.15s ease;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   overflow: auto;
+  gap: 10px;
 }
-main div.hidden_window.hidden {
+main div.hidden_saved {
+  padding: 8vh calc(3vw - 20px);
+}
+main div.hidden_window::before,
+main div.hidden_saved::before {
+  position: absolute;
+  top: 20px;
+  left: calc(3vw - 20px);
+  font-size: 1.5em;
+  font-family: 'Roboto Condensed', sans-serif;
+}
+main div.hidden_window::before {
+  content: 'Tabla de transiciones';
+}
+main div.hidden_saved::before {
+  content: 'Automatas guardados';
+}
+main div.hidden_window.hidden,
+main div.hidden_saved.hidden {
   opacity: 0;
   visibility: hidden;
 }
-main div.hidden_window.visible {
+main div.hidden_window.visible,
+main div.hidden_saved.visible {
   opacity: 1;
   visibility: visible;
 }
-main div.hidden_window button.close_window {
+main div.hidden_window button.close_window,
+main div.hidden_saved button.close_saved {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 20px;
+  right: calc(3vw - 20px);
   left: auto;
   bottom: auto;
   width: 40px;
@@ -65,13 +87,89 @@ main div.hidden_window button.close_window {
   transition: 0.15s ease;
 }
 main div.hidden_window button.close_window:focus,
-main div.hidden_window button.close_window:hover {
+main div.hidden_window button.close_window:hover,
+main div.hidden_saved button.close_saved:focus,
+main div.hidden_saved button.close_saved:hover {
   background: var(--clr_main_dark);
 }
-main div.hidden_window button.close_window img {
+main div.hidden_window button.close_window img,
+main div.hidden_saved button.close_saved img {
   width: 45%;
   height: 45%;
   filter: brightness(0) invert(1);
+}
+main div.hidden_saved div.automatas,
+main div.hidden_saved div.preview {
+  width: 25%;
+  height: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  padding: 10px;
+  border:2px solid var(--clr_main_dark);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2px;
+  overflow: auto;
+}
+main div.hidden_saved div.automatas button.automata_saved {
+  width: 100%;
+  text-align: left;
+  padding: 20px;
+  background: var(--clr_main);
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  color: var(--clr_bakcground);
+  transition: 0.15s ease;
+}
+main div.hidden_saved div.automatas button.automata_saved:hover,
+main div.hidden_saved div.automatas button.automata_saved:focus {
+  background: var(--clr_main_dark);
+  outline: none;
+}
+main div.hidden_saved div.preview {
+  width: 75%;
+  justify-content: space-between;
+}
+main div.hidden_saved div.preview div.actions {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+main div.hidden_saved div.preview div.actions button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  color: var(--clr_bakcground);
+  background: var(--clr_main);
+  transition: 0.15s ease;
+}
+main div.hidden_saved div.preview div.actions button:hover,
+main div.hidden_saved div.preview div.actions button:focus {
+  background: var(--clr_main_dark);
+}
+main div.hidden_saved div.preview div.actions button:first-child {
+  background: var(--clr_contrast);
+}
+main div.hidden_saved div.preview div.actions button:first-child:hover,
+main div.hidden_saved div.preview div.actions button:first-child:focus {
+  outline: 2px solid var(--clr_bakcground);
+  outline-offset: -4px;
+}
+main div.hidden_saved div.preview div.actions button.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+main div.hidden_saved div.preview div.actions button.visible {
+  opacity: 1;
+  visibility: visible;
 }
 main div.hidden_window div.transition_table {
   width: fit-content;
