@@ -7,16 +7,9 @@ let states = { }
 const getAllTransitions = () =>
   new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
 
-/* Function to check if the sutomata is defined, so check if the
- * automata have only one start, one final and if the transitions
- * only have a result per transition */
+/* Function to check if the sutomata is defined, so check if
+ * the transitions only have a result per transition */
 const isDefined = () => {
-  if (Object.values(states).filter(state => state.isInitial).length > 1)
-    return false
-
-  if (Object.values(states).filter(state => state.isFinal).length > 1)
-    return false
-
   for (const state of Object.values(states)) {
     if (Object.values(state.transitions).findIndex(transition => transition.size > 1) > -1)
       return false
@@ -106,82 +99,6 @@ const definedFindWord = (letters, initial) => {
   return selected ? states[selected].isFinal : false
 }
 
-/* Function to transform a undefined automata to defined, first get all
- * transitions, get the actual start and final and do a copy of actual
- * states, then we search all empty transitions and combine them
- * the next step is join all transitions that ends in two or more states
- * then sort all transitions, delete the empy transition of the transitions
- * object, initialize the aux_states, then with the new states and the
- * transitions translate the old states to the new states and assign the
- * respective transitions, finally assign the new start and final and
- * replace the old states to the new */
-const transformAutomata = () => {
-  DFA()
-  return
-
-  const transitions = getAllTransitions()
-  const initial = Object.entries(states).find(([,state]) => state.isInitial)
-  const final = Object.entries(states).find(([,state]) => state.isFinal)
-  let aux_states = {...states}
-  let new_states = []
-
-  Object.entries(aux_states).forEach(([state_id, state]) => {
-    const hasEmpty = Object.keys(state.transitions).findIndex(transition => transition === 'λ')
-
-    if (hasEmpty > -1)
-      (new_states = [...new_states].concat(`${state_id},${[...state.transitions['λ']].join()}`),
-      delete aux_states[state_id].transitions['λ'])
-  })
-
-
-  Object.values(aux_states).forEach(state => {
-    new_states = [...new_states].concat(Object.values(state.transitions).map(transition => [...transition].join()))
-  })
-
-  new_states = [...new Set(new_states)]
-  .sort((state_a, state_b) => state_a.split(',').length - state_b.split(',').length)
-  .reverse()
-
-  if (transitions.has('λ'))
-    transitions.delete('λ')
-
-  aux_states = {}
-
-  new_states.forEach(state => {
-    aux_states[state] = { 'transitions': {}, 'isInitial': false, 'isFinal': false }
-
-    transitions.forEach(transition => {
-      const old_result = states[state] ? states[state].transitions[transition] : false
-      let new_result = ''
-
-      if (state.split(',').length < 2 && !old_result)
-        return false
-
-      new_result = state.split(',').length < 2
-      ? [...old_result].join()
-      : `${state.split(',')
-        .filter(old_state => states[old_state].transitions[transition])
-        .map(old_state => [...states[old_state].transitions[transition]].join())}`
-
-      if (new_result !== '')
-        aux_states[state].transitions[transition] = new Set([new_result])
-    })
-  })
-
-  aux_states[
-    aux_states[initial[0]]
-    ? initial[0]
-    : Object.keys(aux_states).find(state => state.includes(initial[0]))
-  ].isInitial = true
-
-  aux_states[
-    aux_states[final[0]]
-    ? final[0]
-    : Object.keys(aux_states).find(state => state.includes(final[0]))
-  ].isFinal = true
-
-  states = aux_states
-}
 const fillTransitions = id => {
   let transitions = {}
 
@@ -209,6 +126,7 @@ const addStates = (new_states, id) => {
   new_states[id] = {
     isInitial: false,
     isFinal: false,
+    label: '',
     transitions: fillTransitions(id)
   }
 
@@ -217,20 +135,31 @@ const addStates = (new_states, id) => {
     
     console.log(new_id.includes(','))
 
-    if (new_id.includes(','))
+    if (new_id.includes(',') && !thereIsNewState)
       thereIsNewState = true
 
     if (!new_states[new_id])
       addStates(new_states, new_id)
   })
 }
-const DFA = () => {
+const setFinals = (new_states, new_id) => {
+  new_states[new_id].isFinal = true
+
+  Object.values(new_states[new_id].transitions).forEach(transition => {
+    if (!new_states[[...transition][0]].isFinal)
+      setFinals(new_states, [...transition][0])
+  })
+}
+
+/* Function to transform a undefined automata to defined */
+const transformAutomata = () => {
   const transitions = getAllTransitions()
   const initial = Object.entries(states).find(([,state]) => state.isInitial)
-  const final = Object.entries(states).filter(([,state]) => state.isFinal)
+  const finals = Object.entries(states).filter(([,state]) => state.isFinal)
 
   let aux_states = JSON.parse(JSON.stringify(states))
-  let rename_table = []
+  let new_rename_table = []
+  let old_rename_table = []
   let new_states = {}
 
   Object.keys(aux_states).forEach(id => aux_states[id].transitions = {...states[id].transitions})
@@ -261,22 +190,37 @@ const DFA = () => {
     : Object.keys(new_states).find(state => state.includes(initial[0]))
   ].isInitial = true
 
-  final.forEach(([final_id,]) => {
+  finals.forEach(([final_id,]) => {
     Object.entries(new_states).filter(([state_id,]) => state_id.includes(final_id)).forEach(([, state]) => state.isFinal = true )
   })
 
-  Object.keys(new_states).forEach((state, index) => {
-    rename_table.push([state, `Q${index}`])
-  })
+  Object.keys(new_states).forEach((state, index) => new_rename_table.push([state, `Q${index}`]))
+  Object.keys(states).forEach((state, index) => old_rename_table.push([state, `Q${index}`]))
+
+  if (!Object.values(finals).find(state => state.isInitial))
+    new_states[
+      new_rename_table.find(([, equivalence]) =>
+        equivalence === old_rename_table.find(([old_id,]) => old_id === initial[0])[1])[0]
+    ].isInitial = true
+
+  if (!Object.values(finals).find(state => state.isFinal))
+    finals.forEach(([final_id,]) => {
+      let old_equivalence = old_rename_table.find(([old_id,]) => old_id === final_id)[1]
+      let new_id = new_rename_table.find(([,equivalence]) => equivalence === old_equivalence)[0]
+
+      if (!new_states[new_id].isFinal)
+        setFinals(new_states, new_id)
+    })
 
   let transform = {}
 
   Object.entries(new_states).forEach(([state_id, state]) => {
-    const new_name = rename_table.find(ids => ids[0] === state_id)[1]
-    transform[new_name] = {...state}
+    const new_name = new_rename_table.find(ids => ids[0] === state_id)[1]
+    transform[new_name] = JSON.parse(JSON.stringify(state))
+    transform[new_name].label = state_id
 
-    Object.entries(transform[new_name].transitions).forEach(([transition_id, transition]) => {
-      transform[new_name].transitions[transition_id] = new Set([rename_table.find(ids => ids[0] === [...transition][0])[1]])
+    Object.entries(new_states[state_id].transitions).forEach(([transition_id, transition]) => {
+      transform[new_name].transitions[transition_id] = new Set([new_rename_table.find(ids => ids[0] === [...transition][0])[1]])
     })
   })
 
@@ -290,6 +234,8 @@ const DFA = () => {
  * false */
 const handleClear = () => {
   wasConverted = false
+
+  state_num = 0
 
   states = {}
 
@@ -317,11 +263,11 @@ const handleAFD = () => {
   ;[...document.querySelectorAll('button.state, svg.link, span.pointer')]
   .forEach(child => box_drag.removeChild(child))
 
-  Object.keys(states).forEach((id, index) => {
+  Object.entries(states).forEach(([state_id, state], index) => {
     handleAdd({
       x: move,
       y: index % 2 === 0 ? draggable.max_y - 100 : draggable.min_y + 100
-    }, id, true)
+    }, state_id, state.label, true)
     move += index % 2 === 0 ? 200 : 0
   })
 

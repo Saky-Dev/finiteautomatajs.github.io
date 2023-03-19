@@ -176,11 +176,29 @@ main div#drag button.state {
   border: none;
   color: var(--clr_bakcground);
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 main div#drag button.state:hover
 main div#drag button.state:focus {
   outline: none;
   background: var(--clr_main_dark);
+}
+main div#drag button.state span.state_label {
+  position: absolute;
+  background: var(--clr_main_dark);
+  opacity: 0.85;
+  top: 80%;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  transform: scale(0.85);
+  transition: 0.15s ease;
+}
+main div#drag button.state span.state_label:hover {
+  opacity: 1;
+  transform: scale(1);
 }
 main div#drag button.state.initial::after {
   position: absolute;

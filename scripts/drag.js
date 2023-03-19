@@ -270,7 +270,7 @@ const stateTools = {
    * from GUI the links are removed */
   'handleRemove': e => {
     const toRemove = e.target.getAttribute('key')
-    const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').includes(toRemove))
+    const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').split('[link]').includes(toRemove))
 
     Object.entries(states).forEach(([state_id, state]) => {
       Object.entries(state.transitions).forEach(([transition_id, transition]) => {
@@ -294,7 +294,7 @@ const stateTools = {
    * and a visual change when state is moving */
   'handleDragstart': e => {
     const toRemove = e.target.getAttribute('key')
-    const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').includes(toRemove))
+    const links = [...document.querySelectorAll('svg.link')].filter(svg => svg.getAttribute('key').split('[link]').includes(toRemove))
 
     e.target.style.opacity = '0.4'
 
@@ -371,15 +371,23 @@ const stateTools = {
  * state is requested to user, if the name is empty there are a preconfigured name,
  * the button is linked with its fucntions, then its position is asigned and
  * finally if all its alright the node is added to drag area and into states */
-const handleAdd = (e, prename, redraw) => {
+const handleAdd = (e, prename, label, redraw) => {
   const node = document.createElement('button')
+  const pointer = document.createElement('span')
   const name = prename ?? prompt('Nombre del estado:').trim().replace(',', '')
   const on_position = {
     'x': draggable.min_x < e.x - 30 && e.x + 30 < draggable.max_x,
-    'y': draggable.min_y < e.y - 30 && e.y + 30 < draggable.max_y
+    'y': draggable  .min_y < e.y - 30 && e.y + 30 < draggable.max_y
   }
 
+  let accepted = false
   let positioned = false
+
+  while (!accepted) {
+    !document.querySelector(`button.state[key="Q${state_num}"`)
+    ? accepted = true
+    : state_num++
+  }
 
   node.className = 'state'
   node.draggable = true
@@ -399,7 +407,13 @@ const handleAdd = (e, prename, redraw) => {
     positioned = true
   }
 
-  if(redraw) {
+  if (label) {
+    pointer.innerHTML = label
+    pointer.classList.add('state_label')
+    node.appendChild(pointer)
+  }
+
+  if (redraw) {
     box_drag.appendChild(node)
     return false
   }
@@ -411,7 +425,8 @@ const handleAdd = (e, prename, redraw) => {
     states[`${node.getAttribute('key')}`] = {
       'transitions': {},
       'isInitial': false,
-      'isFinal': false
+      'isFinal': false,
+      'label': ''
     }
   }
 }
