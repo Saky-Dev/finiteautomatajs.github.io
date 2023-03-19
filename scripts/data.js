@@ -79,6 +79,47 @@ const handleCloseWindow = () => {
   ;[...box_transition_table.children].forEach(child => box_transition_table.removeChild(child))
 }
 
+const handleSave = () => {
+  if (!isAnAutomata())
+    return
+
+  const ls = window.localStorage
+  const regex = /^[a-zA-Z0-9_]+$/
+  
+  let automatas = {}
+  let toSave = JSON.parse(JSON.stringify(states))
+  let name = prompt('Nombre de guardado (Solo letras, numeros y giones bajos)')
+
+  if (name === null)
+    return
+
+  if (!regex.test(name))
+    return alert('Nombre no valido')
+
+  Object.entries(toSave).forEach(([state_id, state]) => {
+    state.transitions = {...states[state_id].transitions}
+
+    Object.entries(state.transitions).forEach(([transition_id, transition]) => state.transitions[transition_id] = [...transition])
+  })
+
+  console.log(toSave)
+
+  if (ls.getItem('automatas'))
+    automatas = JSON.parse(ls.getItem('automatas'))
+
+  if (automatas[name])
+    return alert('Este automata ya existe')
+  else
+    automatas[name] = toSave
+
+  try {
+    ls.setItem('automatas', JSON.stringify(automatas))
+    alert('Guardado de forma correcta')
+  } catch (e) {
+    alert('Error al guardar')
+  }
+}
+
 /* DOM elements */
 const box_data = document.querySelector('main div.input_data div.data')
 const box_hidden_window = document.querySelector('main div.hidden_window')
@@ -88,4 +129,5 @@ const box_transition_table = document.querySelector('main div.hidden_window div.
 document.querySelector('button#data_add').addEventListener('click', handleDataAdd)
 document.querySelector('button#data_clear').addEventListener('click', handleDataClear)
 document.querySelector('button#table').addEventListener('click', handleTransTable)
+document.querySelector('button#save').addEventListener('click', handleSave)
 document.querySelector('button.close_window').addEventListener('click', handleCloseWindow)
