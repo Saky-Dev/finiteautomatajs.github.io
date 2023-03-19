@@ -125,13 +125,15 @@ main div.hidden_saved div.automatas button.automata_saved {
   transition: 0.15s ease;
 }
 main div.hidden_saved div.automatas button.automata_saved:hover,
-main div.hidden_saved div.automatas button.automata_saved:focus {
+main div.hidden_saved div.automatas button.automata_saved:focus,
+main div.hidden_saved div.automatas button.automata_saved.selected {
   background: var(--clr_main_dark);
   outline: none;
 }
 main div.hidden_saved div.preview {
   width: 75%;
   justify-content: space-between;
+  padding: 2vh 1vw 2vh 3vw;
 }
 main div.hidden_saved div.preview div.actions {
   width: 100%;
@@ -171,7 +173,8 @@ main div.hidden_saved div.preview div.actions button.visible {
   opacity: 1;
   visibility: visible;
 }
-main div.hidden_window div.transition_table {
+main div.hidden_window div.transition_table,
+main div.hidden_saved div.preview div.transition_table {
   width: fit-content;
   height: fit-content;
   display: flex;
@@ -180,7 +183,8 @@ main div.hidden_window div.transition_table {
   justify-content: flex-start;
   gap: 3px;
 }
-main div.hidden_window div.transition_table div.tt_row {
+main div.hidden_window div.transition_table div.tt_row,
+main div.hidden_saved div.preview div.transition_table div.tt_row {
   width: fit-content;
   height: fit-content;
   align-items: flex-start;
@@ -188,11 +192,13 @@ main div.hidden_window div.transition_table div.tt_row {
   display: flex;
   gap: 3px;
 }
-main div.hidden_window div.transition_table div.tt_row:first-child span.tt_column {
+main div.hidden_window div.transition_table div.tt_row:first-child span.tt_column,
+main div.hidden_saved div.preview div.transition_table div.tt_row:first-child span.tt_column {
   color: var(--clr_bakcground);
   background: var(--clr_main);
 }
-main div.hidden_window div.transition_table div.tt_row span.tt_column {
+main div.hidden_window div.transition_table div.tt_row span.tt_column,
+main div.hidden_saved div.preview div.transition_table div.tt_row span.tt_column {
   width: 5vw;
   height: 4vh;
   border: 2px solid var(--clr_main);
@@ -203,14 +209,17 @@ main div.hidden_window div.transition_table div.tt_row span.tt_column {
   color: var(--clr_grey);
   font-size: 0.9em;
 }
-main div.hidden_window div.transition_table div.tt_row span.tt_column:first-child {
+main div.hidden_window div.transition_table div.tt_row span.tt_column:first-child,
+main div.hidden_saved div.preview div.transition_table div.tt_row span.tt_column:first-child {
   color: var(--clr_bakcground);
   background: var(--clr_main);
 }
-main div.hidden_window div.transition_table div.tt_row span.tt_column.initial {
+main div.hidden_window div.transition_table div.tt_row span.tt_column.initial,
+main div.hidden_saved div.preview div.transition_table div.tt_row span.tt_column.initial {
   position: relative;
 }
-main div.hidden_window div.transition_table div.tt_row span.tt_column.initial::after {
+main div.hidden_window div.transition_table div.tt_row span.tt_column.initial::after,
+main div.hidden_saved div.preview div.transition_table div.tt_row span.tt_column.initial::after {
   position: absolute;
   content: '';
   top: 0;

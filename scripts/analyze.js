@@ -4,8 +4,8 @@ let states = { }
 
 /* Function to extract all transitions without repeat
  * from actual states */
-const getAllTransitions = () =>
-  new Set([].concat(...Object.values(states).map(state => Object.keys(state.transitions))))
+const getAllTransitions = automata_selected =>
+  new Set([].concat(...Object.values(automata_selected).map(state => Object.keys(state.transitions))))
 
 /* Function to check if the sutomata is defined, so check if
  * the transitions only have a result per transition */
@@ -153,7 +153,7 @@ const setFinals = (new_states, new_id) => {
 
 /* Function to transform a undefined automata to defined */
 const transformAutomata = () => {
-  const transitions = getAllTransitions()
+  const transitions = getAllTransitions(states)
   const initial = Object.entries(states).find(([,state]) => state.isInitial)
   const finals = Object.entries(states).filter(([,state]) => state.isFinal)
 
@@ -271,7 +271,6 @@ const handleAFD = () => {
     move += index % 2 === 0 ? 200 : 0
   })
 
-
   document.querySelector(`button.state[key='${Object.entries(states).find(([,state]) => state.isInitial)[0]}']`)
   .classList.add('initial')
 
@@ -280,11 +279,11 @@ const handleAFD = () => {
   .forEach(([state_id,]) => document.querySelector(`button.state[key='${state_id}']`).classList.add('final'))
 
   Object.entries(states).forEach(([state_id, state]) => {
-    Object.values(state.transitions).forEach(transition =>  {
+    Object.entries(state.transitions).forEach(([transition_id, transition]) =>  {
       link.starting = document.querySelector(`button.state[key='${state_id}']`)
       link.ending = document.querySelector(`button.state[key='${[...transition][0]}']`)
 
-      stateTools.handleLink(link.ending, state_id, true)
+      stateTools.handleLink(link.ending, transition_id, true)
     })
   })
 
