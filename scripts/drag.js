@@ -204,15 +204,38 @@ const stateTools = {
     const final_state = link.ending.getAttribute('key') 
 
     let {transitions} = states[init_state]
-    let name = pre_name
+    let aux_starting = undefined
+    let names = []
+    let name = pre_name ?? undefined
 
-    while(!name) {
+    if (name === undefined) {
       name = prompt('Nombre de la transición (solo 1 caracter):')
-      
-      if (name.length > 1)
-        name = undefined
-      if (name.trim() === '')
-        name = 'λ'
+
+      if (name === null) {
+        link = {starting: undefined, ending: undefined}
+        return
+      }
+    }
+
+    names = name.split(',')
+
+    if (names.length > 1) {
+      aux_starting = link.starting
+
+      names.forEach(id => {
+        link.starting = aux_starting
+        stateTools['handleLink'](e, id, is_redraw)
+      })
+
+      return
+    }
+    
+    if (name.trim() === '')
+      name = 'λ'
+
+    if (name.length > 1) {
+      link = {starting: undefined, ending: undefined}
+      return alert(`${name} no es valido, longitud maxima de la transicion es uno`)
     }
 
     if(!is_redraw) {
