@@ -2,7 +2,7 @@ let thereIsNewState = false
 let states = { }
 
 /* Function to extract all transitions without repeat
- * from actual states */
+ * from an automata */
 const getAllTransitions = automata_selected =>
   new Set([].concat(...Object.values(automata_selected).map(state => Object.keys(state.transitions))))
 
@@ -51,32 +51,13 @@ const canAnalyze = () => {
   return true
 }
 
-/* Function to check if a word is included into a automata undefined */
-/*const undefinedFindWord = (letters, stack, [selected, position]) => {
-  let lettering = [...letters]
-
-  lettering.splice(0, position)
-
-  for (const [index, single] of lettering.entries()) {
-    if (!states[selected].transitions[single])
-      return stack.length > 0 ? undefinedFindWord(letters, stack, stack.pop()) : false
-
-    let transitions = [...states[selected].transitions[single]]
-    
-    transitions.length > 1
-    ? (selected = transitions.shift(), transitions.forEach(state => stack.push([state, index])))
-    : selected = transitions[0]
-
-    if(index === lettering.length - 1 && !states[selected].isFinal)
-      return stack.length > 0 ? undefinedFindWord(letters, stack, stack.pop()) : false
-  }
-
-  return states[selected].isFinal
-}*/
-
+/* Function to check if a word belogs to actal automata, first check if the
+ * selected state has a transition with the selected letter, then if the
+ * transition goes to several states and save all in the stack, the check if
+ * its the last letter to analizy and if the state is a final, then if not
+ * use the recursion with changed values */
 const belongsToAutomata = (selected, letter, next, word, count, stack) => {
   let temp = {}
-  //console.log(ES, letter, next, word, count, stack)
   if (states[selected].transitions[letter]) {
     if (states[selected].transitions[letter].size > 1 && !next)
       [...states[selected].transitions[letter]].filter((_e, i) => i > 0).forEach(transition => {
@@ -114,22 +95,8 @@ const belongsToAutomata = (selected, letter, next, word, count, stack) => {
   return belongsToAutomata(temp.comes, temp.letter, temp.goal, word, temp.index, stack)
 }
 
-/* Function to check if word is included into defined automata */
-/*const definedFindWord = (letters, initial) => {
-  let selected = initial
-
-  for (const letter of letters) {
-    if (selected && states[selected].transitions[letter])
-      selected = [...states[selected].transitions[letter]][0]
-    else {
-      selected = false
-      break
-    }
-  }
-
-  return selected ? states[selected].isFinal : false
-}*/
-
+/* Auxiliar function to fill and combine transitions
+ * in the new states */
 const fillTransitions = id => {
   let transitions = {}
 
@@ -151,9 +118,11 @@ const fillTransitions = id => {
   
   return transitions
 }
-const addStates = (new_states, id) => {
-  console.log(id)
 
+/* Auxiliar function to create new states, use the recursion
+ * to created the states and follow the ways, also use
+ * fillTransitions function */
+const addStates = (new_states, id) => {
   new_states[id] = {
     isInitial: false,
     isFinal: false,
@@ -163,8 +132,6 @@ const addStates = (new_states, id) => {
 
   Object.values(new_states[id].transitions).forEach(transition => {
     let new_id = [...transition][0]
-    
-    console.log(new_id.includes(','))
 
     if (new_id.includes(',') && !thereIsNewState)
       thereIsNewState = true
@@ -173,6 +140,9 @@ const addStates = (new_states, id) => {
       addStates(new_states, new_id)
   })
 }
+
+/* Function to set new finals helping the second method
+ * to find finals after rename the transformed automata */
 const setFinals = (new_states, new_id) => {
   new_states[new_id].isFinal = true
 
@@ -182,7 +152,11 @@ const setFinals = (new_states, new_id) => {
   })
 }
 
-/* Function to transform a undefined automata to defined */
+/* Function to transform a undefined automata to defined, 
+ * first identify the initial state and all finals, the do
+ * a copy from actual automata and finally get the new
+ * states with addStates function. After create the new automata
+ * set the inital state, the final and rename the new automata's states */
 const transformAutomata = () => {
   const transitions = getAllTransitions(states)
   const initial = Object.entries(states).find(([,state]) => state.isInitial)
@@ -205,12 +179,8 @@ const transformAutomata = () => {
         addStates(new_states, `${[...new Set([state_id,...state.transitions['λ']])].join()}`)
     })
 
-  console.log(Object.keys(new_states).length)
-
   if (Object.keys(new_states).length < 1)
     Object.keys(aux_states).forEach(id => {
-      console.log(`has: ${thereIsNewState}`)
-
       if (!thereIsNewState)
         addStates(new_states, id)
     })
@@ -258,8 +228,6 @@ const transformAutomata = () => {
     })
   })
 
-  console.log(new_states)
-  console.log(transform)
   states = transform
 }
 
@@ -320,9 +288,9 @@ const handleAFD = () => {
 }
 
 /* Function to check if a word belongs to an automata
- * it search all starts and the words, and use the
- * other functions to find the word that depends if the
- * automata is defined or undefined and show the result */
+ * it search the start and the words, and use the
+ * other functions to find the word it use the function
+ * belongsToAutomata and print the all results */
 const handleDataAnalyze = () => {
   if (!canAnalyze())
     return false

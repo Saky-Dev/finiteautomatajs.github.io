@@ -82,6 +82,10 @@ const handleCloseWindow = () => {
   ;[...box_transition_table.children].forEach(child => box_transition_table.removeChild(child))
 }
 
+/* Function to save an automata, first chek if the actual has the qualities
+ * to be an automata then get the name from user, then do a copy, then
+ * transform transitions from set object to array and finally save the automata
+ * in local storage from browser */
 const handleSave = () => {
   if (!isAnAutomata())
     return
@@ -105,8 +109,6 @@ const handleSave = () => {
     Object.entries(state.transitions).forEach(([transition_id, transition]) => state.transitions[transition_id] = [...transition])
   })
 
-  console.log(toSave)
-
   if (ls.getItem('automatas'))
     automatas = JSON.parse(ls.getItem('automatas'))
 
@@ -123,6 +125,8 @@ const handleSave = () => {
   }
 }
 
+/* Aux function to get an automata from local storage
+ * like a copy */
 const getSelectedSavedAutomata = () => {
   const ls = window.localStorage
   const automatas = JSON.parse(ls.getItem('automatas'))
@@ -138,6 +142,7 @@ const getSelectedSavedAutomata = () => {
   return selected
 }
 
+/* Function to draw the transition table from an automata in local storage */
 const handlePreview = e => {
   saved_selected = e.target.getAttribute('key')
 
@@ -155,6 +160,9 @@ const handlePreview = e => {
   e.target.classList.add('selected')
 }
 
+/* Function to display the hidden window
+ * that shows the saved automatas it adds
+ * butttns to choose an saved automata */
 const handleSaved = () => {
   const ls = window.localStorage
 
@@ -177,6 +185,7 @@ const handleSaved = () => {
   box_hidden_saved.className = 'hidden_saved visible'
 }
 
+/* Function to close the window that display the saved automatas */
 const handleCloseSaved = () => {
   box_hidden_saved.className = 'hidden_saved hidden'
 
@@ -187,6 +196,10 @@ const handleCloseSaved = () => {
   button_graphic_saved.className = 'hidden'
 }
 
+/* Here the button to remove an saved automata check if
+ * the state selected can be removed and if it is removed
+ * also the button to choose it is removed, if the local
+ * sstora is empty the window is closed */
 const handleRemoveSaved = () => {
   const ls = window.localStorage
   const automatas = JSON.parse(ls.getItem('automatas'))
@@ -211,6 +224,8 @@ const handleRemoveSaved = () => {
   saved_selected = ''
 }
 
+/* Function linked to button that draw the selected automata
+ * form local storage and erage all from drag area */
 const handleGraphicSaved = () => {
   let move = draggable.min_x + 100
 
