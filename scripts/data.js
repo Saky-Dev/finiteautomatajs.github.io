@@ -46,7 +46,7 @@ const getTransitionTable = (automata_selected) => {
  * for each element inside the matrix is created
  * a div element that works like a row
  * and an span that works like a column */
-const handleTransitionTable = (e, place, automata_selected) => {
+const handleTransitionTable = (_e, place, automata_selected) => {
   if (!automata_selected && !isAnAutomata())
     return false
 

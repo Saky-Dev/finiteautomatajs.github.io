@@ -1,5 +1,4 @@
 let thereIsNewState = false
-let wasConverted = false
 let states = { }
 
 /* Function to extract all transitions without repeat
@@ -52,14 +51,8 @@ const canAnalyze = () => {
   return true
 }
 
-/* Function to check if a word is included into a automata undefined
- * and it use the recursion and an stack, to save the diferent ways,
- * firts the function checks if the next transition exist and if not
- * try other way or returns false, next check change the selected
- * state and if there are more than one way, if saved on the stack
- * finally if is the last state and it's not the final check if there
- * are saved ways or returns false */
-const undefinedFindWord = (letters, stack, [selected, position]) => {
+/* Function to check if a word is included into a automata undefined */
+/*const undefinedFindWord = (letters, stack, [selected, position]) => {
   let lettering = [...letters]
 
   lettering.splice(0, position)
@@ -79,12 +72,50 @@ const undefinedFindWord = (letters, stack, [selected, position]) => {
   }
 
   return states[selected].isFinal
+}*/
+
+const belongsToAutomata = (selected, letter, next, word, count, stack) => {
+  let temp = {}
+  //console.log(ES, letter, next, word, count, stack)
+  if (states[selected].transitions[letter]) {
+    if (states[selected].transitions[letter].size > 1 && !next)
+      [...states[selected].transitions[letter]].filter((_e, i) => i > 0).forEach(transition => {
+        stack.push({
+          comes: selected,
+          letter: letter,
+          goal: transition,
+          index: count
+        })
+      })
+    
+    selected = next ? next : [...states[selected].transitions[letter]][0]
+
+    if (count === word.length - 1) {
+      if (states[selected].isFinal)
+        return true
+
+      if (stack.length < 1)
+        return false
+        
+      temp = stack.pop()
+      return belongsToAutomata(temp.comes, temp.letter, temp.goal, word, temp.index, stack)
+    }
+
+    next = undefined
+    letter = word[++count]
+
+    return belongsToAutomata(selected, letter, next, word, count, stack)
+  }
+
+  if (stack.length < 1)
+    return false
+    
+  temp = stack.pop()
+  return belongsToAutomata(temp.comes, temp.letter, temp.goal, word, temp.index, stack)
 }
 
-/* Function to check if word is included into defined automata
- * this only check if there is a selected state and this have
- * the next step of way, if not the function returns false */
-const definedFindWord = (letters, initial) => {
+/* Function to check if word is included into defined automata */
+/*const definedFindWord = (letters, initial) => {
   let selected = initial
 
   for (const letter of letters) {
@@ -97,7 +128,7 @@ const definedFindWord = (letters, initial) => {
   }
 
   return selected ? states[selected].isFinal : false
-}
+}*/
 
 const fillTransitions = id => {
   let transitions = {}
@@ -183,7 +214,8 @@ const transformAutomata = () => {
       if (!thereIsNewState)
         addStates(new_states, id)
     })
-
+  
+  // first way to get inital and final
   new_states[
     new_states[initial[0]]
     ? initial[0]
@@ -197,6 +229,7 @@ const transformAutomata = () => {
   Object.keys(new_states).forEach((state, index) => new_rename_table.push([state, `Q${index}`]))
   Object.keys(states).forEach((state, index) => old_rename_table.push([state, `Q${index}`]))
 
+  // alternative way to get inital and final
   if (!Object.values(finals).find(state => state.isInitial))
     new_states[
       new_rename_table.find(([, equivalence]) =>
@@ -211,7 +244,8 @@ const transformAutomata = () => {
       if (!new_states[new_id].isFinal)
         setFinals(new_states, new_id)
     })
-
+  
+  // rename automata states
   let transform = {}
 
   Object.entries(new_states).forEach(([state_id, state]) => {
@@ -247,9 +281,6 @@ const handleClear = () => {
  * a conversion before, then is is an automa or it's defined, then do
  * the internal conversion and finally draw the new automata */
 const handleAFD = () => {
-  if (wasConverted)
-    return alert('Se ha detectado una conversión previa, usa el boton de limpiar para reiniciar el conversor')
-
   let move = draggable.min_x + 100
 
   if (!isAnAutomata())
@@ -286,8 +317,6 @@ const handleAFD = () => {
       stateTools.handleLink(link.ending, transition_id, true)
     })
   })
-
-  wasConverted = true
 }
 
 /* Function to check if a word belongs to an automata
@@ -299,24 +328,16 @@ const handleDataAnalyze = () => {
     return false
 
   const words = [...document.querySelectorAll('input.word[type="text"]')]
-  const beginning = Object.entries(states).filter(([, state]) => state.isInitial).map(([id,]) => id)
+  const beginning = Object.entries(states).find(([, state]) => state.isInitial)[0]
 
   let belongs = false
 
   words.forEach(word => {
     const result = word.parentElement.querySelector('span.result')
-    const letters = word.value.replace(' ', 'λ').split('')
+    const letters = word.value.replaceAll(' ', 'λ').split('')
 
-    if (isDefined())
-      belongs = definedFindWord(letters, beginning[0])
-    else
-      for (const initial of beginning) {
-        belongs = undefinedFindWord(letters, [], [initial, 0])
-
-        if (belongs)
-          break
-      }
-
+    belongs = belongsToAutomata(beginning, letters[0], undefined, letters, 0, [])
+    
     result.innerHTML = belongs
     belongs ? result.classList.remove('false') : result.classList.add('false')
   })
