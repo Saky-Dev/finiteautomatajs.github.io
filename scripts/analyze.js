@@ -200,13 +200,13 @@ const transformAutomata = () => {
   Object.keys(states).forEach((state, index) => old_rename_table.push([state, `Q${index}`]))
 
   // alternative way to get inital and final
-  if (!Object.values(finals).find(state => state.isInitial))
+  if (!Object.values(new_states).find(state => state.isInitial))
     new_states[
       new_rename_table.find(([, equivalence]) =>
         equivalence === old_rename_table.find(([old_id,]) => old_id === initial[0])[1])[0]
     ].isInitial = true
 
-  if (!Object.values(finals).find(state => state.isFinal))
+  if (!Object.values(new_states).find(state => state.isFinal))
     finals.forEach(([final_id,]) => {
       let old_equivalence = old_rename_table.find(([old_id,]) => old_id === final_id)[1]
       let new_id = new_rename_table.find(([,equivalence]) => equivalence === old_equivalence)[0]
